@@ -1,0 +1,16 @@
+
+{
+  "name": "hakim-store",
+  "version": "1.0.0",
+  "description": "HAKIM STORE CarX Street",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "midtrans-client": "^1.4.2"
+  }
+}
