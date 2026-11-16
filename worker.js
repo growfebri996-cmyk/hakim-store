@@ -122,7 +122,33 @@ if (token.trim() !== `Bearer ${adminToken.trim()}`) {
           })
         });
 
-        const paymentData = await payment.json();
+        
+const paymentText = await payment.text();
+
+let paymentData;
+try {
+  paymentData = JSON.parse(paymentText);
+} catch {
+  paymentData = { raw_response: paymentText };
+}
+
+if (!payment.ok || !paymentData.redirect_url) {
+  await env.DB.prepare(
+    "UPDATE inventory SET status = 'available', order_id = NULL WHERE id = ?"
+  ).bind(stock.id).run();
+
+  await env.DB.prepare(
+    "DELETE FROM orders WHERE id = ?"
+  ).bind(orderId).run();
+
+  return respond({
+    success: false,
+    message: "Gagal membuat pembayaran Midtrans",
+    midtrans_status: payment.status,
+    midtrans_error: paymentData
+  }, 502);
+}
+
 
         if (!payment.ok || !paymentData.redirect_url) {
           await env.DB.prepare("UPDATE inventory SET status = 'available', order_id = NULL WHERE id = ?").bind(stock.id).run();
