@@ -6,6 +6,8 @@ const PRODUCTS = {
   paket3: { name: "Paket 3 - Elite", price: 300000 }
 };
 
+const SITE_ORIGIN = "https://hakim-store.growfebri996.workers.dev";
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -16,15 +18,15 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type, Authorization"
     };
 
-    const respond = (data, status = 200) => {
-      return new Response(JSON.stringify(data), {
+    const respond = (data, status = 200) =>
+      new Response(JSON.stringify(data), {
         status,
         headers: {
           ...cors,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store"
         }
       });
-    };
 
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: cors });
@@ -54,7 +56,7 @@ export default {
         });
       }
 
-      // TAMBAH STOK AKUN
+      // TAMBAH STOK
       if (
         url.pathname === "/api/admin/stock" &&
         request.method === "POST"
@@ -83,15 +85,14 @@ export default {
         }
 
         const body = await request.json();
-
-        const product_id = body.product_id;
-        const account_email = body.account_email;
+        const productId = body.product_id;
+        const email = body.account_email;
         const password = body.password;
 
         if (
-          !PRODUCTS[product_id] ||
-          typeof account_email !== "string" ||
-          !account_email.trim() ||
+          !PRODUCTS[productId] ||
+          typeof email !== "string" ||
+          !email.trim() ||
           typeof password !== "string" ||
           !password
         ) {
@@ -131,8 +132,8 @@ export default {
           (product_id, account_email, password_cipher, password_iv, status)
           VALUES (?, ?, ?, ?, 'available')`
         ).bind(
-          product_id,
-          account_email.trim(),
+          productId,
+          email.trim(),
           bytesToHex(new Uint8Array(encrypted)),
           bytesToHex(iv)
         ).run();
@@ -143,7 +144,7 @@ export default {
         });
       }
 
-      // MEMBUAT PESANAN DAN PEMBAYARAN
+      // BUAT PESANAN DAN PEMBAYARAN
       if (
         url.pathname === "/api/orders" &&
         request.method === "POST"
@@ -157,12 +158,15 @@ export default {
 
         const body = await request.json();
 
-        const product_id = body.product_id;
+        const productId = body.product_id;
         const buyer = body.buyer;
         const whatsapp = body.whatsapp;
-        const streamer_code = body.streamer_code || null;
+        const streamerCode =
+          typeof body.streamer_code === "string"
+            ? body.streamer_code.trim() || null
+            : null;
 
-        const product = PRODUCTS[product_id];
+        const product = PRODUCTS[productId];
 
         if (
           !product ||
@@ -182,7 +186,7 @@ export default {
           `SELECT * FROM inventory
           WHERE product_id = ? AND status = 'available'
           LIMIT 1`
-        ).bind(product_id).first();
+        ).bind(productId).first();
 
         if (!stock) {
           return respond({
@@ -191,33 +195,29 @@ export default {
           }, 409);
         }
 
-        // Kunci stok agar tidak dibeli dua orang sekaligus
+        // Buat ID lebih dulu agar stok terkunci dengan ID pesanan yang benar
+        const orderId = "HS-" + crypto.randomUUID();
+
         const reserve = await env.DB.prepare(
           `UPDATE inventory
           SET status = 'reserved', order_id = ?
           WHERE id = ? AND status = 'available'`
-        ).bind(
-          "TEMP-" + crypto.randomUUID(),
-          stock.id
-        ).run();
+        ).bind(orderId, stock.id).run();
 
         if (!reserve.meta || reserve.meta.changes !== 1) {
           return respond({
             success: false,
-            message: "Stok baru saja dipesan orang lain. Silakan coba lagi."
+            message: "Stok baru saja dipesan orang lain. Coba lagi."
           }, 409);
         }
 
-        const orderId = "HS-" + crypto.randomUUID();
-
-        const accessToken = bytesToHex(
-          crypto.getRandomValues(new Uint8Array(32))
-        );
-
-        const tokenHash = await sha256(accessToken);
-
         try {
-          // Simpan pesanan
+          const accessToken = bytesToHex(
+            crypto.getRandomValues(new Uint8Array(32))
+          );
+
+          const tokenHash = await sha256(accessToken);
+
           await env.DB.prepare(
             `INSERT INTO orders
             (id, product_id, buyer, whatsapp, streamer_code,
@@ -225,23 +225,15 @@ export default {
             VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)`
           ).bind(
             orderId,
-            product_id,
+            productId,
             buyer.trim(),
             whatsapp.trim(),
-            streamer_code,
+            streamerCode,
             product.price,
             tokenHash,
             stock.id
           ).run();
 
-          // Perbarui ID pesanan pada stok
-          await env.DB.prepare(
-            `UPDATE inventory
-            SET order_id = ?
-            WHERE id = ? AND status = 'reserved'`
-          ).bind(orderId, stock.id).run();
-
-          // Hubungkan ke Midtrans Sandbox
           const auth = btoa(env.MIDTRANS_SERVER_KEY + ":");
 
           const payment = await fetch(
@@ -261,6 +253,11 @@ export default {
                 customer_details: {
                   first_name: buyer.trim(),
                   phone: whatsapp.trim()
+                },
+                callbacks: {
+                  finish: SITE_ORIGIN + "/?pesanan=" + encodeURIComponent(orderId),
+                  error: SITE_ORIGIN + "/?pesanan=" + encodeURIComponent(orderId),
+                  pending: SITE_ORIGIN + "/?pesanan=" + encodeURIComponent(orderId)
                 }
               })
             }
@@ -269,24 +266,21 @@ export default {
           const paymentText = await payment.text();
 
           let paymentData;
-
           try {
             paymentData = JSON.parse(paymentText);
           } catch {
-            paymentData = {
-              raw_response: paymentText
-            };
+            paymentData = {};
           }
 
           if (!payment.ok || !paymentData.redirect_url) {
             await env.DB.prepare(
               `UPDATE inventory
               SET status = 'available', order_id = NULL
-              WHERE id = ? AND order_id = ?`
+              WHERE id = ? AND order_id = ? AND status = 'reserved'`
             ).bind(stock.id, orderId).run();
 
             await env.DB.prepare(
-              "DELETE FROM orders WHERE id = ?"
+              "DELETE FROM orders WHERE id = ? AND status = 'pending'"
             ).bind(orderId).run();
 
             return respond({
@@ -305,22 +299,22 @@ export default {
           });
 
         } catch (error) {
-          // Kembalikan stok jika proses pesanan gagal
+          // Lepaskan stok jika proses pembuatan pesanan gagal
           await env.DB.prepare(
             `UPDATE inventory
             SET status = 'available', order_id = NULL
-            WHERE id = ? AND order_id IN (?, ?)`
-          ).bind(stock.id, orderId, "TEMP-" + orderId).run();
+            WHERE id = ? AND order_id = ? AND status = 'reserved'`
+          ).bind(stock.id, orderId).run();
 
           await env.DB.prepare(
-            "DELETE FROM orders WHERE id = ?"
+            "DELETE FROM orders WHERE id = ? AND status = 'pending'"
           ).bind(orderId).run();
 
           throw error;
         }
       }
 
-      // NOTIFIKASI PEMBAYARAN MIDTRANS
+      // WEBHOOK MIDTRANS
       if (
         url.pathname === "/api/midtrans/webhook" &&
         request.method === "POST"
@@ -333,13 +327,38 @@ export default {
         }
 
         const notification = await request.json();
-        const orderId = notification.order_id;
 
-        if (!orderId || typeof orderId !== "string") {
+        const orderId = notification.order_id;
+        const statusCode = notification.status_code;
+        const grossAmount = notification.gross_amount;
+        const signature = notification.signature_key;
+
+        if (
+          typeof orderId !== "string" ||
+          typeof statusCode !== "string" ||
+          typeof grossAmount !== "string" ||
+          typeof signature !== "string"
+        ) {
           return respond({
             success: false,
-            message: "Order ID tidak valid"
+            message: "Data notifikasi tidak lengkap"
           }, 400);
+        }
+
+        // Verifikasi signature dari Midtrans
+        const signatureInput =
+          orderId +
+          statusCode +
+          grossAmount +
+          env.MIDTRANS_SERVER_KEY;
+
+        const expectedSignature = await sha512(signatureInput);
+
+        if (signature.toLowerCase() !== expectedSignature) {
+          return respond({
+            success: false,
+            message: "Signature notifikasi tidak valid"
+          }, 403);
         }
 
         const order = await env.DB.prepare(
@@ -353,7 +372,7 @@ export default {
           }, 404);
         }
 
-        // Periksa status langsung ke Midtrans
+        // Cek status langsung ke server Midtrans
         const statusResponse = await fetch(
           `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
           {
@@ -374,10 +393,14 @@ export default {
           }, 502);
         }
 
-        if (Number(statusData.gross_amount) !== Number(order.amount)) {
+        if (
+          statusData.order_id !== orderId ||
+          Number(statusData.gross_amount) !== Number(order.amount) ||
+          statusData.currency !== "IDR"
+        ) {
           return respond({
             success: false,
-            message: "Jumlah pembayaran tidak sesuai"
+            message: "Data pembayaran tidak sesuai"
           }, 400);
         }
 
@@ -392,13 +415,13 @@ export default {
           await env.DB.prepare(
             `UPDATE orders
             SET status = 'paid', updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`
+            WHERE id = ? AND status = 'pending'`
           ).bind(orderId).run();
 
           await env.DB.prepare(
             `UPDATE inventory
             SET status = 'sold'
-            WHERE order_id = ?`
+            WHERE order_id = ? AND status = 'reserved'`
           ).bind(orderId).run();
 
         } else if (
@@ -409,19 +432,19 @@ export default {
           await env.DB.prepare(
             `UPDATE orders
             SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`
+            WHERE id = ? AND status = 'pending'`
           ).bind(orderId).run();
 
           await env.DB.prepare(
             `UPDATE inventory
             SET status = 'available', order_id = NULL
-            WHERE order_id = ?`
+            WHERE order_id = ? AND status = 'reserved'`
           ).bind(orderId).run();
         }
 
         return respond({
           success: true,
-          message: "Notifikasi berhasil diproses"
+          message: "Notifikasi berhasil diverifikasi dan diproses"
         });
       }
 
@@ -431,7 +454,7 @@ export default {
       );
 
       if (orderMatch && request.method === "GET") {
-        const orderId = orderMatch[1];
+        const orderId = decodeURIComponent(orderMatch[1]);
 
         const authHeader =
           request.headers.get("Authorization") || "";
@@ -461,13 +484,23 @@ export default {
           }, 404);
         }
 
+        const base = {
+          success: true,
+          order_id: order.id,
+          product: PRODUCTS[order.product_id]?.name || order.product_id,
+          buyer: order.buyer,
+          amount: order.amount,
+          status: order.status
+        };
+
         if (
           !["paid", "processing", "completed"].includes(order.status)
         ) {
           return respond({
-            success: true,
-            status: order.status,
-            message: "Akun tersedia setelah pembayaran terverifikasi"
+            ...base,
+            message: order.status === "cancelled"
+              ? "Pesanan dibatalkan atau kedaluwarsa"
+              : "Akun tersedia setelah pembayaran terverifikasi"
           });
         }
 
@@ -489,9 +522,7 @@ export default {
           }, 404);
         }
 
-        const keyBytes = hexToBytes(
-          env.ACCOUNT_ENCRYPTION_KEY
-        );
+        const keyBytes = hexToBytes(env.ACCOUNT_ENCRYPTION_KEY);
 
         if (keyBytes.length !== 32) {
           return respond({
@@ -518,14 +549,13 @@ export default {
         );
 
         return respond({
-          success: true,
-          status: order.status,
+          ...base,
           account_email: stock.account_email,
           password: new TextDecoder().decode(decrypted)
         });
       }
 
-      // TAMPILKAN WEBSITE
+      // WEBSITE STATIS
       return env.ASSETS.fetch(request);
 
     } catch (error) {
@@ -538,7 +568,7 @@ export default {
   }
 };
 
-// UBAH HEX MENJADI BYTE
+// HEX KE BYTE
 function hexToBytes(hex) {
   if (
     typeof hex !== "string" ||
@@ -553,7 +583,7 @@ function hexToBytes(hex) {
   );
 }
 
-// UBAH BYTE MENJADI HEX
+// BYTE KE HEX
 function bytesToHex(bytes) {
   return Array.from(
     bytes,
@@ -561,10 +591,20 @@ function bytesToHex(bytes) {
   ).join("");
 }
 
-// HASH TOKEN PESANAN
+// SHA-256 UNTUK TOKEN PESANAN
 async function sha256(value) {
   const hash = await crypto.subtle.digest(
     "SHA-256",
+    new TextEncoder().encode(value)
+  );
+
+  return bytesToHex(new Uint8Array(hash));
+}
+
+// SHA-512 UNTUK SIGNATURE MIDTRANS
+async function sha512(value) {
+  const hash = await crypto.subtle.digest(
+    "SHA-512",
     new TextEncoder().encode(value)
   );
 
