@@ -8,12 +8,11 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#0b0d12;color:#fff}
-header{background:#151923;padding:20px 6%;display:flex;
-justify-content:space-between;align-items:center;border-bottom:1px solid #292e39}
+header{background:#151923;padding:20px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #292e39;flex-wrap:wrap;gap:12px}
 .logo{font-size:24px;font-weight:900;color:#f5c542}
 nav a{color:white;text-decoration:none;margin-left:18px;font-size:14px}
-.hero{text-align:center;padding:65px 20px 45px;
-background:linear-gradient(135deg,#171e2d,#101117)}
+nav a:hover{color:#f5c542}
+.hero{text-align:center;padding:65px 20px 45px;background:linear-gradient(135deg,#171e2d,#101117)}
 .hero h1{font-size:38px;color:#f5c542;margin-bottom:12px}
 .hero p{color:#c0c5d0;line-height:1.6}
 main{max-width:1100px;margin:auto;padding:35px 18px}
@@ -27,21 +26,32 @@ main{max-width:1100px;margin:auto;padding:35px 18px}
 .card h3{font-size:20px;margin-bottom:8px}
 .price{font-size:25px;font-weight:bold;color:#f5c542;margin:12px 0}
 ul{padding-left:19px;color:#c3cad5;font-size:14px;line-height:1.9}
-button{border:0;background:#f5c542;color:#111;font-weight:bold;
-padding:13px 18px;border-radius:8px;cursor:pointer;width:100%;margin-top:16px}
+button{border:0;background:#f5c542;color:#111;font-weight:bold;padding:13px 18px;border-radius:8px;cursor:pointer;width:100%;margin-top:16px}
 button:hover{background:#ffda70}
+button:disabled{opacity:.5;cursor:not-allowed}
 .info{margin-top:35px;background:#171c27;padding:22px;border-radius:12px}
 .info p{color:#bdc4d0;line-height:1.8;font-size:14px}
 footer{text-align:center;padding:25px;color:#8992a3;border-top:1px solid #252b36}
-.modal{display:none;position:fixed;inset:0;background:#000c;
-align-items:center;justify-content:center;padding:15px;z-index:5}
-.modal-content{background:#1a202c;width:100%;max-width:430px;
-padding:24px;border-radius:14px}
-.modal input{width:100%;padding:13px;margin-top:12px;
-background:#0c1018;border:1px solid #3b4352;border-radius:7px;color:white}
+.modal{display:none;position:fixed;inset:0;background:#000c;align-items:center;justify-content:center;padding:15px;z-index:5}
+.modal-content{background:#1a202c;width:100%;max-width:430px;padding:24px;border-radius:14px}
+.modal input{width:100%;padding:13px;margin-top:12px;background:#0c1018;border:1px solid #3b4352;border-radius:7px;color:white}
 .modal h2{color:#f5c542;margin-bottom:8px}
 .close{background:#444;color:white}
 .small{font-size:12px;color:#aab2c1;margin-top:10px}
+.order-section{display:none;margin-top:35px;background:#171c27;border:1px solid #343c4b;border-radius:14px;padding:22px}
+.order-section h2{color:#f5c542;margin-bottom:15px}
+.order-info{font-size:14px;color:#c3cad5;line-height:2;overflow-wrap:anywhere}
+.status{display:inline-block;padding:7px 12px;border-radius:7px;background:#55451c;color:#ffdc77;font-weight:bold;margin:10px 0}
+.account-box{display:none;margin-top:18px;padding:18px;background:#0c111a;border:1px solid #3c4657;border-radius:10px}
+.account-box h3{color:#f5c542;margin-bottom:12px}
+.account-row{margin:12px 0;overflow-wrap:anywhere}
+.account-row span{display:block;color:#aab2c1;font-size:12px;margin-bottom:5px}
+.account-value{font-size:15px;color:white}
+.copy{width:auto;margin:8px 0 0;padding:9px 14px}
+.notice{color:#aab2c1;font-size:13px;line-height:1.7;margin-top:12px}
+.order-input{width:100%;padding:13px;margin-top:12px;background:#0c1018;border:1px solid #3b4352;border-radius:7px;color:white}
+.action-row{display:flex;gap:10px;flex-wrap:wrap}
+.action-row button{flex:1}
 @media(max-width:650px){
  .products{grid-template-columns:1fr}
  .hero h1{font-size:30px}
@@ -54,7 +64,11 @@ background:#0c1018;border:1px solid #3b4352;border-radius:7px;color:white}
 
 <header>
  <div class="logo">HAKIM STORE</div>
- <nav><a href="#produk">Produk</a><a href="#bantuan">Bantuan</a></nav>
+ <nav>
+  <a href="#produk">Produk</a>
+  <a href="#pesanan" onclick="showOrder()">Pesanan Saya</a>
+  <a href="#bantuan">Bantuan</a>
+ </nav>
 </header>
 
 <section class="hero">
@@ -72,12 +86,23 @@ Pilih paket akun favoritmu dengan mudah dan aman.</p>
  <div class="products" id="products"></div>
 </section>
 
+<section class="order-section" id="pesanan">
+ <h2>STATUS PESANAN</h2>
+ <div id="orderContent">
+  <p class="notice">Masukkan nomor pesanan dan token akses untuk melihat pesanan.</p>
+  <input id="manualOrderId" class="order-input" placeholder="Nomor pesanan (HS-...)">
+  <input id="manualToken" class="order-input" placeholder="Token akses pesanan">
+  <button onclick="lookupOrder()">Cek Pesanan</button>
+ </div>
+</section>
+
 <section class="info" id="bantuan">
  <h3>INFORMASI PEMBELIAN</h3><br>
  <p>• Pembayaran akan diverifikasi sebelum akun dikirim.</p>
  <p>• Akun dikirim menggunakan email dan password.</p>
  <p>• Stok akun mengikuti ketersediaan di gudang admin.</p>
  <p>• Gunakan kode streamer jika kamu datang dari streamer.</p>
+ <p>• Simpan nomor pesanan dan token akses untuk melihat akun.</p>
 </section>
 </main>
 
@@ -88,52 +113,52 @@ Pilih paket akun favoritmu dengan mudah dan aman.</p>
   <input id="buyer" placeholder="Nama pembeli">
   <input id="wa" placeholder="Nomor WhatsApp">
   <input id="streamer" placeholder="Kode streamer (opsional)">
-  <button onclick="checkout()">Lanjutkan Pesanan</button>
+  <button id="checkoutButton" onclick="checkout()">Lanjutkan Pesanan</button>
   <button class="close" onclick="closeModal()">Tutup</button>
-  <p class="small">Pembayaran QRIS dan pengiriman otomatis perlu dihubungkan ke backend.</p>
+  <p class="small">Pembayaran menggunakan Midtrans Sandbox selama tahap pengujian.</p>
  </div>
 </div>
 
 <footer>© 2026 HAKIM STORE | CARX STREET</footer>
 
 <script>
+const API = "";
+
 const packages=[
 {
+id:"safeban",
 name:"Akun SAFEBAN",price:30000,
 items:["Level 30+","Silver 2.000.000","Gold 2.000","2 mobil standar"]
 },
 {
+id:"paket1",
 name:"Paket 1 - Starter",price:70000,
-items:["Semua map terbuka","Level 50","Money 12.000.000",
-"Gold 7.000","101 mobil standar"]
+items:["Semua map terbuka","Level 50","Money 12.000.000","Gold 7.000","101 mobil standar"]
 },
 {
+id:"paket2",
 name:"Paket 2 - Pro",price:150000,
-items:["Semua map terbuka","Level 50","Money 15.000.000",
-"Gold 10.000","Unlock banner dan avatar","12 mobil pro drift",
-"60 mobil standar premium"]
+items:["Semua map terbuka","Level 50","Money 15.000.000","Gold 10.000","Unlock banner dan avatar","12 mobil pro drift","60 mobil standar premium"]
 },
 {
+id:"paket3",
 name:"Paket 3 - Elite",price:300000,
-items:["Semua map terbuka","Level 50","Silver 20.000.000",
-"Gold 10.000","Unlock license plate","Unlock lampu neon",
-"Unlock livery","Unlock stiker roda","24 mobil pro drift",
-"Sensor kemudi 70+"]
+items:["Semua map terbuka","Level 50","Silver 20.000.000","Gold 10.000","Unlock license plate","Unlock lampu neon","Unlock livery","Unlock stiker roda","24 mobil pro drift","Sensor kemudi 70+"]
 }
 ];
 
 let chosen=null;
+let polling=null;
+let currentOrder=null;
 
-/** @param {number} n */
 function rupiah(n){
- return "Rp"+n.toLocaleString("id-ID");
+ return "Rp"+Number(n).toLocaleString("id-ID");
 }
 
 function render(){
  document.getElementById("products").innerHTML=packages.map((p,i)=>`
  <article class="card">
-  <img src="https://placehold.co/700x350/202938/f5c542?text=HAKIM+STORE"
-       alt="${p.name}">
+  <img src="https://placehold.co/700x350/202938/f5c542?text=HAKIM+STORE" alt="${p.name}">
   <div class="card-body">
    <h3>${p.name}</h3>
    <div class="price">${rupiah(p.price)}</div>
@@ -144,74 +169,235 @@ function render(){
  `).join("");
 }
 
-/** @param {number} i */
 function openModal(i){
  chosen=packages[i];
  document.getElementById("selected").textContent=
  chosen.name+" - "+rupiah(chosen.price);
  document.getElementById("modal").style.display="flex";
 }
+
 function closeModal(){
  document.getElementById("modal").style.display="none";
 }
-async function 
-checkout(){
-  const buyer = document.getElementById("buyer").value.trim();
-  const wa = document.getElementById("wa").value.trim();
-  const streamer = document.getElementById("streamer").value.trim();
 
-  if (!buyer || !wa) {
-    alert("Isi nama dan nomor WhatsApp terlebih dahulu.");
-    return;
+async function checkout(){
+ const buyer=document.getElementById("buyer").value.trim();
+ const wa=document.getElementById("wa").value.trim();
+ const streamer=document.getElementById("streamer").value.trim();
+
+ if(!buyer||!wa){
+  alert("Isi nama dan nomor WhatsApp terlebih dahulu.");
+  return;
+ }
+ if(!chosen){
+  alert("Pilih paket terlebih dahulu.");
+  return;
+ }
+
+ const btn=document.getElementById("checkoutButton");
+ btn.disabled=true;
+ btn.textContent="MEMBUAT PESANAN...";
+
+ try{
+  const response=await fetch(API+"/api/orders",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    product_id:chosen.id,
+    buyer,
+    whatsapp:wa,
+    streamer_code:streamer
+   })
+  });
+
+  const data=await response.json();
+
+  if(!response.ok||!data.success){
+   throw new Error(data.message||"Gagal membuat pesanan.");
   }
 
-  if (!chosen) {
-    alert("Silakan pilih paket terlebih dahulu.");
-    return;
+  // Simpan token akses pesanan di perangkat pembeli
+  saveOrder(data.order_id,data.access_token);
+
+  // Buka halaman status terlebih dahulu
+  closeModal();
+  showOrder();
+  document.getElementById("manualOrderId").value=data.order_id;
+  document.getElementById("manualToken").value=data.access_token;
+  await loadOrder(data.order_id,data.access_token);
+
+  // Arahkan ke halaman pembayaran Midtrans
+  setTimeout(()=>{
+   window.location.href=data.payment_url;
+  },1200);
+
+ }catch(error){
+  alert(error.message);
+  btn.disabled=false;
+  btn.textContent="Lanjutkan Pesanan";
+ }
+}
+
+function saveOrder(id,token){
+ const list=JSON.parse(localStorage.getItem("hakim_orders")||"[]");
+ const filtered=list.filter(x=>x.id!==id);
+ filtered.push({id,token});
+ localStorage.setItem("hakim_orders",JSON.stringify(filtered));
+}
+
+function getSavedOrder(){
+ const list=JSON.parse(localStorage.getItem("hakim_orders")||"[]");
+ return list.length?list[list.length-1]:null;
+}
+
+function showOrder(){
+ document.getElementById("pesanan").style.display="block";
+}
+
+async function lookupOrder(){
+ const id=document.getElementById("manualOrderId").value.trim();
+ const token=document.getElementById("manualToken").value.trim();
+
+ if(!id||!token){
+  alert("Masukkan nomor pesanan dan token akses.");
+  return;
+ }
+
+ saveOrder(id,token);
+ await loadOrder(id,token);
+}
+
+async function loadOrder(id,token){
+ const content=document.getElementById("orderContent");
+ content.innerHTML="<p class='notice'>Memeriksa pesanan...</p>";
+
+ try{
+  const response=await fetch(API+"/api/orders/"+encodeURIComponent(id),{
+   headers:{"Authorization":"Bearer "+token},
+   cache:"no-store"
+  });
+
+  const data=await response.json();
+
+  if(!response.ok||!data.success){
+   throw new Error(data.message||"Gagal mengambil pesanan.");
   }
 
-  const btn = document.querySelector(
-    '.modal-content button[onclick="checkout()"]'
-  );
+  currentOrder={id,token};
 
-  btn.disabled = true;
-  btn.textContent = "MEMBUAT PESANAN...";
+  const statusLabels={
+   pending:"MENUNGGU PEMBAYARAN",
+   paid:"PEMBAYARAN BERHASIL",
+   processing:"SEDANG DIPROSES",
+   completed:"PESANAN SELESAI",
+   cancelled:"PESANAN DIBATALKAN"
+  };
 
-  try {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        product_id: ["safeban", "paket1", "paket2", "paket3"][packages.indexOf(chosen)],
-        buyer: buyer,
-        whatsapp: wa,
-        streamer_code: streamer
-      })
-    });
+  let html=`
+   <div class="order-info">
+    <p>Nomor pesanan: <b>${escapeHTML(data.order_id||id)}</b></p>
+    <p>Produk: <b>${escapeHTML(data.product||"-")}</b></p>
+    <p>Nama pembeli: <b>${escapeHTML(data.buyer||"-")}</b></p>
+    <p>Total: <b>${rupiah(data.amount||0)}</b></p>
+   </div>
+   <div class="status">${statusLabels[data.status]||escapeHTML(data.status)}</div>
+   <p class="notice">${escapeHTML(data.message||"")}</p>
+  `;
 
-    const data = await response.json();
-
-    if (!response.ok) {
-  throw new Error(
-    data.message || data.error || "HTTP " + response.status
-  );
-    }
-
-    sessionStorage.setItem("hakim_order_id", data.order_id);
-    sessionStorage.setItem("hakim_access_token", data.access_token);
-
-    window.location.href = data.payment_url;
-
-  } catch (error) {
-    alert(error.message);
-    btn.disabled = false;
-    btn.textContent = "Lanjutkan Pesanan";
+  if(data.account_email&&data.password){
+   html+=`
+    <div class="account-box" style="display:block">
+     <h3>DETAIL AKUN KAMU</h3>
+     <div class="account-row">
+      <span>EMAIL AKUN</span>
+      <div class="account-value" id="accountEmail">${escapeHTML(data.account_email)}</div>
+      <button class="copy" onclick="copyValue('accountEmail')">Salin Email</button>
+     </div>
+     <div class="account-row">
+      <span>PASSWORD AKUN</span>
+      <div class="account-value" id="accountPassword">${escapeHTML(data.password)}</div>
+      <button class="copy" onclick="copyValue('accountPassword')">Salin Password</button>
+     </div>
+     <p class="notice">Jaga kerahasiaan data akun. Jangan bagikan email dan password kepada orang lain.</p>
+    </div>
+   `;
   }
+
+  html+=`
+   <div class="action-row">
+    <button onclick="refreshOrder()">Perbarui Status</button>
+   </div>
+  `;
+
+  content.innerHTML=html;
+
+  if(polling)clearInterval(polling);
+
+  if(["pending","paid","processing"].includes(data.status)){
+   polling=setInterval(()=>{
+    if(currentOrder)loadOrder(currentOrder.id,currentOrder.token);
+   },5000);
+  }
+
+ }catch(error){
+  content.innerHTML=`
+   <p class="notice">${escapeHTML(error.message)}</p>
+   <button onclick="showOrder()">Coba Lagi</button>
+  `;
+ }
+}
+
+function refreshOrder(){
+ if(currentOrder){
+  loadOrder(currentOrder.id,currentOrder.token);
+ }
+}
+
+async function copyValue(id){
+ const value=document.getElementById(id)?.textContent||"";
+ try{
+  await navigator.clipboard.writeText(value);
+  alert("Berhasil disalin.");
+ }catch{
+  alert("Tidak bisa menyalin otomatis. Silakan salin secara manual.");
+ }
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
+ })[c]);
 }
 
 render();
+
+// Jika pembeli kembali dari halaman pembayaran, coba tampilkan pesanan tersimpan
+const saved=getSavedOrder();
+const params=new URLSearchParams(window.location.search);
+const returnedOrder=params.get("pesanan");
+
+if(returnedOrder){
+ showOrder();
+ const list=JSON.parse(localStorage.getItem("hakim_orders")||"[]");
+ const found=list.find(x=>x.id===returnedOrder);
+
+ if(found){
+  document.getElementById("manualOrderId").value=found.id;
+  document.getElementById("manualToken").value=found.token;
+  loadOrder(found.id,found.token);
+ }else{
+  document.getElementById("manualOrderId").value=returnedOrder;
+ }
+}else if(saved){
+ showOrder();
+ document.getElementById("manualOrderId").value=saved.id;
+ document.getElementById("manualToken").value=saved.token;
+ loadOrder(saved.id,saved.token);
+}
 </script>
 </body>
 </html>
