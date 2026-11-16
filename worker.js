@@ -37,9 +37,21 @@ export default {
 
       if (url.pathname === "/api/admin/stock" && request.method === "POST") {
         const token = request.headers.get("Authorization") || "";
-        if (token !== `Bearer ${env.ADMIN_TOKEN}`) {
-          return respond({ success: false, message: "Akses admin ditolak" }, 401);
-        }
+const adminToken = env.ADMIN_TOKEN;
+
+if (!adminToken) {
+  return respond({
+    success: false,
+    message: "ADMIN_TOKEN tidak terbaca oleh Worker"
+  }, 500);
+}
+
+if (token.trim() !== `Bearer ${adminToken.trim()}`) {
+  return respond({
+    success: false,
+    message: "Token tidak cocok"
+  }, 401);
+}
 
         const body = await request.json();
         const { product_id, account_email, password } = body;
