@@ -149,13 +149,6 @@ if (!payment.ok || !paymentData.redirect_url) {
   }, 502);
 }
 
-
-        if (!payment.ok || !paymentData.redirect_url) {
-          await env.DB.prepare("UPDATE inventory SET status = 'available', order_id = NULL WHERE id = ?").bind(stock.id).run();
-          await env.DB.prepare("DELETE FROM orders WHERE id = ?").bind(orderId).run();
-          return respond({ success: false, message: "Gagal membuat pembayaran Midtrans" }, 502);
-        }
-
         return respond({
           success: true,
           order_id: orderId,
