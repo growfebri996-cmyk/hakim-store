@@ -26,7 +26,8 @@ export default {
     }
 
     try {
-      if (url.pathname === "/api/health") {
+      
+if (url.pathname === "/api/health") {
   const result = await env.DB.prepare("SELECT 1 AS ok").first();
 
   return respond({
@@ -36,7 +37,12 @@ export default {
     encryption_key_loaded: !!env.ACCOUNT_ENCRYPTION_KEY,
     admin_token_loaded: !!env.ADMIN_TOKEN
   });
-      }
+}
+
+if (url.pathname === "/api/products") {
+  return respond({ success: true, products: PRODUCTS });
+}
+
         const result = await env.DB.prepare("SELECT 1 AS ok").first();
         return respond({ success: true, database: result?.ok === 1 });
       }
