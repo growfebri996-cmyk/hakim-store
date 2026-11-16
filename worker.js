@@ -25,7 +25,7 @@ export default {
       return new Response(null, { headers: cors });
     }
 
-    try {
+  
       
 if (url.pathname === "/api/health") {
   const result = await env.DB.prepare("SELECT 1 AS ok").first();
