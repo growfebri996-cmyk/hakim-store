@@ -194,7 +194,9 @@ checkout(){
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Pesanan gagal dibuat.");
+  throw new Error(
+    data.message || data.error || "HTTP " + response.status
+  );
     }
 
     sessionStorage.setItem("hakim_order_id", data.order_id);
