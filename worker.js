@@ -27,6 +27,16 @@ export default {
 
     try {
       if (url.pathname === "/api/health") {
+  const result = await env.DB.prepare("SELECT 1 AS ok").first();
+
+  return respond({
+    success: true,
+    database: result?.ok === 1,
+    midtrans_key_loaded: !!env.MIDTRANS_SERVER_KEY,
+    encryption_key_loaded: !!env.ACCOUNT_ENCRYPTION_KEY,
+    admin_token_loaded: !!env.ADMIN_TOKEN
+  });
+      }
         const result = await env.DB.prepare("SELECT 1 AS ok").first();
         return respond({ success: true, database: result?.ok === 1 });
       }
