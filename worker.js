@@ -75,12 +75,27 @@ if (
     `SELECT status FROM inventory WHERE id = ?`
   ).bind(order.inventory_id).first();
 
-  return respond({
-    success: true,
-    order_id: order.id,
-    order_status: order.status,
-    stock_status: stock?.status || "not_found"
-  });
+  const midtransResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(order.id)}/status`,
+  {
+    headers: {
+      "Authorization": "Basic " +
+        btoa(env.MIDTRANS_SERVER_KEY + ":"),
+      "Accept": "application/json"
+    }
+  }
+);
+
+const midtransText = await midtransResponse.text();
+
+return respond({
+  success: true,
+  order_id: order.id,
+  order_status: order.status,
+  stock_status: stock?.status || "not_found",
+  midtrans_http_status: midtransResponse.status,
+  midtrans_response: midtransText
+});
 }
       // HEALTH CHECK
       if (url.pathname === "/api/health") {
