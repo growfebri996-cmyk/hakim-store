@@ -1,0 +1,18 @@
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hakim-store",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-16",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hakim-store-db",
+      "database_id": "9fa4826b-ba30-40b5-8c03-cfa9570e2ede"
+    }
+  ]
+}
