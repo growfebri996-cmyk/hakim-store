@@ -33,6 +33,55 @@ export default {
     }
 
     try {
+      // CEK STATUS PESANAN
+if (
+  url.pathname === "/api/admin/check-order" &&
+  request.method === "GET"
+) {
+  const token = request.headers.get("Authorization") || "";
+
+  if (
+    !env.ADMIN_TOKEN ||
+    token.trim() !== `Bearer ${env.ADMIN_TOKEN.trim()}`
+  ) {
+    return respond({
+      success: false,
+      message: "Akses ditolak"
+    }, 401);
+  }
+
+  const orderId = url.searchParams.get("id");
+
+  if (!orderId) {
+    return respond({
+      success: false,
+      message: "ID pesanan diperlukan"
+    }, 400);
+  }
+
+  const order = await env.DB.prepare(
+    `SELECT id, product_id, amount, status, inventory_id
+     FROM orders WHERE id = ?`
+  ).bind(orderId).first();
+
+  if (!order) {
+    return respond({
+      success: false,
+      message: "Pesanan tidak ditemukan"
+    }, 404);
+  }
+
+  const stock = await env.DB.prepare(
+    `SELECT status FROM inventory WHERE id = ?`
+  ).bind(order.inventory_id).first();
+
+  return respond({
+    success: true,
+    order_id: order.id,
+    order_status: order.status,
+    stock_status: stock?.status || "not_found"
+  });
+}
       // HEALTH CHECK
       if (url.pathname === "/api/health") {
         const result = await env.DB
