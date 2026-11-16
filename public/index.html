@@ -184,12 +184,7 @@ checkout(){
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        product_id: Object.keys({
-          safeban: 0,
-          starter: 1,
-          pro: 2,
-          elite: 3
-        })[packages.indexOf(chosen)],
+        product_id: ["safeban", "paket1", "paket2", "paket3"][packages.indexOf(chosen)],
         buyer: buyer,
         whatsapp: wa,
         streamer_code: streamer
