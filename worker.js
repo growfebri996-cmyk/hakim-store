@@ -387,11 +387,15 @@ export default {
         const statusData = await statusResponse.json();
 
         if (!statusResponse.ok) {
-          return respond({
-            success: false,
-            message: "Gagal memeriksa status Midtrans"
-          }, 502);
-        }
+  const errorText = await statusResponse.text();
+
+  return respond({
+    success: false,
+    message: "Gagal memeriksa status Midtrans",
+    midtrans_http_status: statusResponse.status,
+    midtrans_error: errorText
+  }, 502);
+}
 
         if (
           statusData.order_id !== orderId ||
