@@ -76,7 +76,7 @@ if (
   ).bind(order.inventory_id).first();
 
   const midtransResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(order.id)}/status`,
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(notification.transaction_id)}/status`,
   {
     headers: {
       "Authorization": "Basic " +
