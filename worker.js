@@ -522,36 +522,49 @@ export default {
           statusHeaders["transaction-source"] = "SNAP_API";
         }
 
-        const statusResponse = await fetch(
-          `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(transactionId)}/status`,
-          {
-            method: "GET",
-            headers: statusHeaders
-          }
-        );
+        
+const statusResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(transactionId)}/status`,
+  {
+    method: "GET",
+    headers: statusHeaders
+  }
+);
 
-        const statusText = await statusResponse.text();
+const statusText = await statusResponse.text();
 
-        let statusData = {};
+let statusData = {};
 
-        try {
-          statusData = JSON.parse(statusText);
-        } catch {
-          statusData = {};
-        }
+try {
+  statusData = JSON.parse(statusText);
+} catch {
+  statusData = {};
+}
 
-        if (
-          !statusResponse.ok ||
-          String(statusData.status_code || "") !== "200"
-        ) {
-          return respond({
-            success: false,
-            message: "Gagal memeriksa status transaksi Midtrans",
-            midtrans_http_status: statusResponse.status,
-            midtrans_status_code: statusData.status_code || null,
-            midtrans_message: statusData.status_message || null
-          }, 502);
-        }
+console.log("MIDTRANS STATUS DIAGNOSTIC", {
+  httpStatus: statusResponse.status,
+  statusCode: statusData.status_code || null,
+  orderId: statusData.order_id || null,
+  transactionId: statusData.transaction_id || null,
+  transactionStatus: statusData.transaction_status || null,
+  grossAmount: statusData.gross_amount || null,
+  currency: statusData.currency || null,
+  paymentType: statusData.payment_type || null,
+  signatureLength: statusData.signature_key?.length || 0
+});
+
+if (
+  !statusResponse.ok ||
+  String(statusData.status_code || "") !== "200"
+) {
+  return respond({
+    success: false,
+    message: "Gagal memeriksa status transaksi Midtrans",
+    midtrans_http_status: statusResponse.status,
+    midtrans_status_code: statusData.status_code || null,
+    midtrans_message: statusData.status_message || null
+  }, 502);
+}
 
         // Cocokkan data status dengan notifikasi dan pesanan
         if (
