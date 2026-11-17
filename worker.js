@@ -543,7 +543,8 @@ if (!statusResponse.ok) {
   transactionStatus: statusData.transaction_status
 });
 
-        if (
+        
+if (
   notification.order_id !== orderId ||
   statusData.transaction_id !== transactionId ||
   Number(statusData.gross_amount) !== Number(order.amount) ||
@@ -553,12 +554,8 @@ if (!statusResponse.ok) {
     success: false,
     message: "Data pembayaran tidak sesuai"
   }, 400);
-        } {
-          return respond({
-            success: false,
-            message: "Data pembayaran tidak sesuai"
-          }, 400);
-        }
+}
+
 
         const paid =
           statusData.transaction_status === "settlement" ||
