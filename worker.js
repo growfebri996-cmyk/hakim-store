@@ -544,10 +544,16 @@ if (!statusResponse.ok) {
 });
 
         if (
-          statusData.order_id !== orderId ||
-          Number(statusData.gross_amount) !== Number(order.amount) ||
-          statusData.currency !== "IDR"
-        ) {
+  notification.order_id !== orderId ||
+  statusData.transaction_id !== transactionId ||
+  Number(statusData.gross_amount) !== Number(order.amount) ||
+  statusData.currency !== "IDR"
+) {
+  return respond({
+    success: false,
+    message: "Data pembayaran tidak sesuai"
+  }, 400);
+        } {
           return respond({
             success: false,
             message: "Data pembayaran tidak sesuai"
