@@ -474,18 +474,45 @@ if (
         }
 
         // Cek status langsung ke server Midtrans
-        const statusResponse = await fetch(
-          `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
-          {
-            headers: {
-              "Authorization": "Basic " +
-                btoa(env.MIDTRANS_SERVER_KEY + ":"),
-              "Accept": "application/json"
-            }
-          }
-        );
+        
+const statusResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
+  {
+    headers: {
+      "Authorization": "Basic " +
+        btoa(env.MIDTRANS_SERVER_KEY + ":"),
+      "Accept": "application/json"
+    }
+  }
+);
 
-        const statusData = await statusResponse.json();
+const statusText = await statusResponse.text();
+
+let statusData = {};
+
+try {
+  statusData = JSON.parse(statusText);
+} catch {
+  statusData = {};
+}
+
+console.log("MIDTRANS STATUS CHECK", {
+  httpStatus: statusResponse.status,
+  orderId: statusData.order_id,
+  transactionStatus: statusData.transaction_status,
+  statusCode: statusData.status_code,
+  message: statusData.status_message
+});
+
+if (!statusResponse.ok) {
+  return respond({
+    success: false,
+    message: "Gagal memeriksa status Midtrans",
+    midtrans_http_status: statusResponse.status,
+    midtrans_error: statusText
+  }, 502);
+}
+
 
         if (!statusResponse.ok) {
   const errorText = await statusResponse.text();
