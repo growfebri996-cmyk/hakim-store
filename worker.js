@@ -472,17 +472,15 @@ export default {
   )
 });
 
-        if (
-          !constantTimeEqual(
-            signature.toLowerCase(),
-            expectedSignature.toLowerCase()
-          )
-        ) {
-          return respond({
-            success: false,
-            message: "Signature notifikasi tidak valid"
-          }, 403);
-        }
+        const signatureValid = constantTimeEqual(
+  signature.toLowerCase(),
+  expectedSignature.toLowerCase()
+);
+
+console.log("SIGNATURE CHECK RESULT", {
+  signatureValid,
+  orderId
+});
 
         // Cari pesanan di database
         const order = await env.DB.prepare(
@@ -566,6 +564,19 @@ if (
   }, 502);
 }
 
+if (!signatureValid) {
+  return respond({
+    success: false,
+    message: "DIAGNOSTIC ONLY - Signature not valid",
+    midtrans_transaction_status:
+      statusData.transaction_status || null,
+    midtrans_order_id: statusData.order_id || null,
+    midtrans_transaction_id: statusData.transaction_id || null,
+    midtrans_gross_amount: statusData.gross_amount || null,
+    midtrans_signature_length:
+      statusData.signature_key?.length || 0
+  }, 403);
+}
         // Cocokkan data status dengan notifikasi dan pesanan
         if (
           statusData.transaction_id !== transactionId ||
