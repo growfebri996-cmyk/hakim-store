@@ -449,7 +449,7 @@ console.log("SIGNATURE COMPARE", {
   signatureReceivedLength: signature.length,
   signatureExpectedLength: expectedSignature.length,
   signatureMatch:
-  signature.toLowerCase() === expectedSignature.toLowerCase()
+  signature.toLowerCase() === expectedSignature2.toLowerCase()
 });
 
         
