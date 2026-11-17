@@ -467,6 +467,14 @@ export default {
         const expectedSignature = await sha512(
           signatureInput
         );
+        const serverKeyFingerprint = await sha256(
+  env.MIDTRANS_SERVER_KEY
+);
+
+console.log("SERVER KEY FINGERPRINT", {
+  fingerprint: serverKeyFingerprint.slice(0, 16),
+  keyLength: env.MIDTRANS_SERVER_KEY.length
+});
         const hashSelfTest = await sha512(
   "1111200100000.00askvnoibnosifnboseofinbofinfgbiufglnbfg"
 );
