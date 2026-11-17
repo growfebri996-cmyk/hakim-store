@@ -467,6 +467,14 @@ export default {
         const expectedSignature = await sha512(
           signatureInput
         );
+        const hashSelfTest = await sha512(
+  "1111200100000.00askvnoibnosifnboseofinbofinfgbiufglnbfg"
+);
+
+console.log("SHA512 SELF TEST", {
+  passed: hashSelfTest ===
+    "edc076b21793ebe3e17926350f5b8ae67d902fe657b3d0aa31b932d5c127e2375d308a2bc94f3265ac2d80a1f181a79b997ac178a236fcff35af263fc4d4c231"
+});
         console.log("SIGNATURE DIAGNOSTIC", {
   orderId,
   inputLength: signatureInput.length,
