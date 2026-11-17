@@ -548,6 +548,7 @@ console.log("MIDTRANS STATUS DIAGNOSTIC", {
   grossAmount: statusData.gross_amount || null,
   currency: statusData.currency || null,
   paymentType: statusData.payment_type || null,
+  merchantId: statusData.merchant_id || null,
   signatureLength: statusData.signature_key?.length || 0
 });
         const statusSignatureInput =
@@ -575,7 +576,15 @@ console.log("STATUS SIGNATURE VERIFICATION", {
   amountMatches:
     Number(statusData.gross_amount) === Number(order.amount),
   currencyMatches: statusData.currency === "IDR",
-  signatureLength: statusData.signature_key?.length || 0
+
+  keyPrefixValid:
+    env.MIDTRANS_SERVER_KEY?.startsWith("SB-Mid-server-"),
+
+  keyLength:
+    env.MIDTRANS_SERVER_KEY?.length || 0,
+
+  signatureLength:
+    statusData.signature_key?.length || 0
 });
 
 if (
