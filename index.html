@@ -998,4 +998,80 @@ function renderOrderResult(data) {
 
   const heading = document.createElement("h4");
   heading.textContent = "INFORMASI PESANAN";
-  resul
+  result.appendChild(heading);
+
+  addResultLine(result, "ID Pesanan", order.id || order.order_id || "-");
+  addResultLine(result, "Produk", order.product_name || order.product_id || "-");
+  addResultLine(result, "Status", statusNames[status] || status);
+  addResultLine(
+    result,
+    "Total",
+    order.amount ? formatRupiah(Number(order.amount)) : "-"
+  );
+
+  const account = data.account || order.account;
+
+  if (account) {
+    const accountHeading = document.createElement("h4");
+    accountHeading.textContent = "INFORMASI AKUN";
+    accountHeading.style.marginTop = "15px";
+    result.appendChild(accountHeading);
+
+    addResultLine(result, "Email", account.email || "-");
+    addResultLine(result, "Password", account.password || "-");
+  } else if (status === "paid") {
+    addResultLine(
+      result,
+      "Informasi",
+      "Pembayaran sudah berhasil. Data akun belum tersedia pada respons server."
+    );
+  } else {
+    addResultLine(
+      result,
+      "Informasi",
+      "Data akun akan ditampilkan setelah pembayaran berhasil diverifikasi."
+    );
+  }
+}
+
+/* =====================================
+   TAMBAH BARIS HASIL DENGAN AMAN
+===================================== */
+
+function addResultLine(container, label, value) {
+  const paragraph = document.createElement("p");
+
+  const strong = document.createElement("strong");
+  strong.textContent = label + ": ";
+
+  const span = document.createElement("span");
+  span.textContent = String(value);
+
+  paragraph.appendChild(strong);
+  paragraph.appendChild(span);
+
+  container.appendChild(paragraph);
+}
+
+/* =====================================
+   TUTUP MODAL KETIKA KLIK LUAR
+===================================== */
+
+document.getElementById("checkoutModal").addEventListener(
+  "click",
+  function(event) {
+    if (event.target === this) {
+      closeCheckout();
+    }
+  }
+);
+
+/* =====================================
+   PEMERIKSAAN HALAMAN
+===================================== */
+
+console.log("HAKIM STORE berhasil dimuat.");
+</script>
+
+</body>
+</html>
