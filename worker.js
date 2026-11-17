@@ -417,6 +417,14 @@ return respond({
           env.MIDTRANS_SERVER_KEY;
 
         const expectedSignature = await sha512(signatureInput);
+        console.log("WEBHOOK DEBUG", {
+  orderId,
+  statusCode,
+  grossAmount,
+  signatureReceivedLength: signature.length,
+  signatureExpectedLength: expectedSignature.length,
+  signatureMatch: signature.toLowerCase() === expectedSignature
+});
 
         if (signature.toLowerCase() !== expectedSignature) {
           return respond({
