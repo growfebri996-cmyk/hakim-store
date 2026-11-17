@@ -475,8 +475,25 @@ if (
 
         // Cek status langsung ke server Midtrans
         
+const transactionId = notification.transaction_id;
+
+if (!transactionId) {
+  return respond({
+    success: false,
+    message: "Transaction ID tidak ditemukan dalam notifikasi"
+  }, 400);
+}
+
 const statusResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(transactionId)}/status`,
+  {
+    headers: {
+      "Authorization": "Basic " +
+        btoa(env.MIDTRANS_SERVER_KEY + ":"),
+      "Accept": "application/json"
+    }
+  }
+);,
   {
     headers: {
       "Authorization": "Basic " +
