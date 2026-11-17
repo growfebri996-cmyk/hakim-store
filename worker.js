@@ -307,6 +307,15 @@ export default {
             stock.id
           ).run();
 
+          const checkoutKeyFingerprint = await sha256(
+  env.MIDTRANS_SERVER_KEY
+);
+
+console.log("CHECKOUT SERVER KEY FINGERPRINT", {
+  fingerprint: checkoutKeyFingerprint.slice(0, 16),
+  keyLength: env.MIDTRANS_SERVER_KEY.length
+});
+
           const auth = btoa(
             env.MIDTRANS_SERVER_KEY + ":"
           );
