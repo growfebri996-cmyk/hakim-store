@@ -534,6 +534,14 @@ if (!statusResponse.ok) {
     midtrans_error: errorText
   }, 502);
 }
+        console.log("WEBHOOK DATA CHECK", {
+  receivedOrderId: orderId,
+  midtransOrderId: statusData.order_id,
+  midtransTransactionId: statusData.transaction_id,
+  grossAmount: statusData.gross_amount,
+  currency: statusData.currency,
+  transactionStatus: statusData.transaction_status
+});
 
         if (
           statusData.order_id !== orderId ||
