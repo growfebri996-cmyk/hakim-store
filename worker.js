@@ -457,6 +457,19 @@ export default {
         const expectedSignature = await sha512(
           signatureInput
         );
+        console.log("SIGNATURE DIAGNOSTIC", {
+  orderIdExists: Boolean(orderId),
+  statusCode,
+  grossAmount,
+  signatureLength: signature.length,
+  expectedLength: expectedSignature.length,
+  keyLength: env.MIDTRANS_SERVER_KEY?.length,
+  keyHasWhitespace: /\s/.test(env.MIDTRANS_SERVER_KEY || ""),
+  signatureMatches: constantTimeEqual(
+    signature.toLowerCase(),
+    expectedSignature.toLowerCase()
+  )
+});
 
         if (
           !constantTimeEqual(
