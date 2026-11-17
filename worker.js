@@ -454,7 +454,7 @@ console.log("SIGNATURE COMPARE", {
 
         
 if (
-  signature.toLowerCase() !== expectedSignature.toLowerCase()
+  signature.toLowerCase() !== expectedSignature2.toLowerCase()
 ) {
   return respond({
     success: false,
