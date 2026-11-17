@@ -469,6 +469,10 @@ export default {
         );
         console.log("SIGNATURE DIAGNOSTIC", {
   orderId,
+  inputLength: signatureInput.length,
+  orderIdLength: orderId.length,
+  statusCodeLength: statusCode.length,
+  grossAmountLength: grossAmount.length,
   paymentType: notification.payment_type || null,
   statusCode,
   grossAmount,
