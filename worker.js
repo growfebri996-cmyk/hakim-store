@@ -458,13 +458,14 @@ export default {
           signatureInput
         );
         console.log("SIGNATURE DIAGNOSTIC", {
-  orderIdExists: Boolean(orderId),
+  orderId,
+  paymentType: notification.payment_type || null,
   statusCode,
   grossAmount,
+  transactionId,
   signatureLength: signature.length,
   expectedLength: expectedSignature.length,
   keyLength: env.MIDTRANS_SERVER_KEY?.length,
-  keyHasWhitespace: /\s/.test(env.MIDTRANS_SERVER_KEY || ""),
   signatureMatches: constantTimeEqual(
     signature.toLowerCase(),
     expectedSignature.toLowerCase()
