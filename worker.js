@@ -410,6 +410,12 @@ return respond({
         }
 
         // Verifikasi signature dari Midtrans
+        console.log("KEY CHECK", {
+  keyExists: !!env.MIDTRANS_SERVER_KEY,
+  keyLength: env.MIDTRANS_SERVER_KEY?.length,
+  keyHasWhitespace:
+    env.MIDTRANS_SERVER_KEY !== env.MIDTRANS_SERVER_KEY?.trim()
+});
         const signatureInput =
           orderId +
           statusCode +
