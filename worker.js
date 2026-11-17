@@ -423,6 +423,23 @@ return respond({
           env.MIDTRANS_SERVER_KEY;
 
         const expectedSignature = await sha512(signatureInput);
+
+const signatureInput2 =
+  orderId +
+  statusCode +
+  grossAmount +
+  env.MIDTRANS_SIGNATURE_SECRET_KEY;
+
+const expectedSignature2 = await sha512(signatureInput2);
+
+console.log("SIGNATURE COMPARE", {
+  serverKeyExists: !!env.MIDTRANS_SERVER_KEY,
+  signatureSecretExists: !!env.MIDTRANS_SIGNATURE_SECRET_KEY,
+  serverKeyMatch:
+    signature.toLowerCase() === expectedSignature.toLowerCase(),
+  signatureSecretMatch:
+    signature.toLowerCase() === expectedSignature2.toLowerCase()
+});
         console.log("WEBHOOK DEBUG", {
   orderId,
   statusCode,
@@ -431,15 +448,19 @@ return respond({
   transactionStatus: notification.transaction_status,
   signatureReceivedLength: signature.length,
   signatureExpectedLength: expectedSignature.length,
-  signatureMatch: signature.toLowerCase() === expectedSignature
+  signatureMatch:
+  signature.toLowerCase() === expectedSignature.toLowerCase()
 });
 
-        if (signature.toLowerCase() !== expectedSignature) {
-          return respond({
-            success: false,
-            message: "Signature notifikasi tidak valid"
-          }, 403);
-        }
+        
+if (
+  signature.toLowerCase() !== expectedSignature.toLowerCase()
+) {
+  return respond({
+    success: false,
+    message: "Signature notifikasi tidak valid"
+  }, 403);
+}
 
         const order = await env.DB.prepare(
           "SELECT * FROM orders WHERE id = ?"
