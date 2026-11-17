@@ -429,6 +429,16 @@ export default {
           notification.gross_amount ?? ""
         );
         const signature = notification.signature_key;
+        console.log("WEBHOOK CREDENTIAL DIAGNOSTIC", {
+  notificationOrderId: orderId,
+  notificationStatusCode: statusCode,
+  notificationGrossAmount: grossAmount,
+  notificationSignatureLength: signature?.length || 0,
+  serverKeyExists: Boolean(env.MIDTRANS_SERVER_KEY),
+  serverKeyPrefixValid:
+    env.MIDTRANS_SERVER_KEY?.startsWith("SB-Mid-server-"),
+  serverKeyLength: env.MIDTRANS_SERVER_KEY?.length || 0
+});
 
         const transactionId = notification.transaction_id;
 
