@@ -484,16 +484,6 @@ if (!transactionId) {
   }, 400);
 }
 
-
-const transactionId = notification.transaction_id;
-
-if (!transactionId) {
-  return respond({
-    success: false,
-    message: "Transaction ID tidak ditemukan dalam notifikasi"
-  }, 400);
-}
-
 const statusResponse = await fetch(
   `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(transactionId)}/status`,
   {
