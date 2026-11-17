@@ -421,8 +421,8 @@ return respond({
   orderId,
   statusCode,
   grossAmount,
-          merchantIdReceived: notification.merchant_id,
-transactionStatus: notification.transaction_status
+  merchantIdReceived: notification.merchant_id,
+  transactionStatus: notification.transaction_status,
   signatureReceivedLength: signature.length,
   signatureExpectedLength: expectedSignature.length,
   signatureMatch: signature.toLowerCase() === expectedSignature
