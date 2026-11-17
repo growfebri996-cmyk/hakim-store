@@ -550,6 +550,33 @@ console.log("MIDTRANS STATUS DIAGNOSTIC", {
   paymentType: statusData.payment_type || null,
   signatureLength: statusData.signature_key?.length || 0
 });
+        const statusSignatureInput =
+  String(statusData.order_id || "") +
+  String(statusData.status_code || "") +
+  String(statusData.gross_amount || "") +
+  env.MIDTRANS_SERVER_KEY;
+
+const expectedStatusSignature = await sha512(
+  statusSignatureInput
+);
+
+const statusSignatureValid =
+  typeof statusData.signature_key === "string" &&
+  constantTimeEqual(
+    statusData.signature_key.toLowerCase(),
+    expectedStatusSignature.toLowerCase()
+  );
+
+console.log("STATUS SIGNATURE VERIFICATION", {
+  statusSignatureValid,
+  orderIdMatches: statusData.order_id === orderId,
+  transactionIdMatches:
+    statusData.transaction_id === transactionId,
+  amountMatches:
+    Number(statusData.gross_amount) === Number(order.amount),
+  currencyMatches: statusData.currency === "IDR",
+  signatureLength: statusData.signature_key?.length || 0
+});
 
 if (
   !statusResponse.ok ||
