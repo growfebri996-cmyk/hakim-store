@@ -284,10 +284,13 @@ export default {
           }, 409);
         }
 
-        try {
-          const accessToken = bytesToHex(
-            crypto.getRandomValues(new Uint8Array(32))
-          );
+        let midtransRequestStarted = false;
+let accessToken = null;
+
+try {
+  accessToken = bytesToHex(
+    crypto.getRandomValues(new Uint8Array(32))
+  );
 
           const tokenHash = await sha256(accessToken);
 
@@ -319,7 +322,8 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
           const auth = btoa(
             env.MIDTRANS_SERVER_KEY + ":"
           );
-
+  
+           midtransRequestStarted = true;
           const payment = await fetch(
             "https://app.midtrans.com/snap/v1/transactions",
             {
@@ -367,29 +371,41 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
           }
 
           if (
-            !payment.ok ||
-            !paymentData.redirect_url
-          ) {
-            await releaseStock(
-              env,
-              stock.id,
-              orderId
-            );
+  !payment.ok ||
+  !paymentData.redirect_url
+) {
+  // Hanya bersihkan jika Midtrans memberikan
+  // penolakan HTTP 4xx yang jelas.
+  const definitiveRejection =
+    payment.status >= 400 &&
+    payment.status < 500 &&
+    payment.status !== 408 &&
+    payment.status !== 429;
 
-            await env.DB.prepare(
-              `DELETE FROM orders
-               WHERE id = ?
-                 AND status = 'pending'`
-            ).bind(orderId).run();
+  if (definitiveRejection) {
+    await releaseStock(
+      env,
+      stock.id,
+      orderId
+    );
 
-            return respond({
-              success: false,
-              message: "Gagal membuat pembayaran Midtrans",
-              midtrans_status: payment.status,
-              midtrans_error: paymentData
-            }, 502);
+    await env.DB.prepare(
+      `DELETE FROM orders
+       WHERE id = ?
+         AND status = 'pending'`
+    ).bind(orderId).run();
+  }
+
+  return respond({
+    success: false,
+    message: definitiveRejection
+      ? "Midtrans menolak pembuatan pembayaran"
+      : "Status pembuatan pembayaran belum dapat dipastikan. Jangan melakukan pembayaran ulang. Hubungi admin.",
+    order_id: orderId,
+    midtrans_status: payment.status,
+    midtrans_error: paymentData
+  }, 502);
           }
-
           return respond({
   success: true,
   order_id: orderId,
@@ -405,22 +421,37 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
 });
 
         } catch (error) {
-          await releaseStock(
-            env,
-            stock.id,
-            orderId
-          );
+  console.error("CHECKOUT ERROR:", error);
 
-          await env.DB.prepare(
-            `DELETE FROM orders
-             WHERE id = ?
-               AND status = 'pending'`
-          ).bind(orderId).run();
+  // Jika permintaan Midtrans belum dikirim,
+  // aman untuk membatalkan order dan melepas stok.
+  if (!midtransRequestStarted) {
+    await releaseStock(
+      env,
+      stock.id,
+      orderId
+    );
 
-          throw error;
-        }
-      }
+    await env.DB.prepare(
+      `DELETE FROM orders
+       WHERE id = ?
+         AND status = 'pending'`
+    ).bind(orderId).run();
 
+    return respond({
+      success: false,
+      message: "Gagal menyiapkan pesanan"
+    }, 500);
+  }
+
+  // Jika permintaan sudah dikirim, status transaksi
+  // mungkin belum diketahui. Jangan lepaskan stok.
+  return respond({
+    success: false,
+    message: "Permintaan pembayaran sedang mengalami gangguan. Pesanan perlu diperiksa admin sebelum mencoba kembali.",
+    order_id: orderId
+  }, 502);
+}
       // =========================
       // WEBHOOK MIDTRANS
       // =========================
