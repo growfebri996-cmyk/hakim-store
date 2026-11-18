@@ -997,19 +997,18 @@ if (orderChanges !== 1 || inventoryChanges !== 1) {
       }
 
       // =========================
-      // WEBSITE STATIS
-      // =========================
-      return env.ASSETS.fetch(request);
+// WEBSITE STATIS
+// =========================
+return env.ASSETS.fetch(request);
 
-      } catch (error) {
-      console.error("WORKER ERROR:", error);
+} catch (error) {  
+  console.error("WORKER ERROR:", error);  
 
-      return respond({
-        success: false,
-        message: "Terjadi kesalahan server"
-      }, 500);
-    }
-};
+  return respond({  
+    success: false,  
+    message: "Terjadi kesalahan server"  
+  }, 500);  
+}
 
 // =========================
 // CEK ADMIN
