@@ -483,15 +483,36 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
         const expectedSignature = await sha512(
           signatureInput
         );
-        console.log("WEBHOOK SIGNATURE COMPARISON", {
-  orderId,
-  statusCode,
-  grossAmount,
-  receivedSignature: signature,
-  expectedSignature,
-  signatureMatches:
-    signature?.toLowerCase() ===
-    expectedSignature.toLowerCase()
+        const key = env.MIDTRANS_SERVER_KEY;
+
+const testOriginal = await sha512(
+  orderId + statusCode + grossAmount + key
+);
+
+const testAmountInteger = await sha512(
+  orderId + statusCode + String(Number(grossAmount)) + key
+);
+
+const testTrimmed = await sha512(
+  orderId.trim() + statusCode.trim() + grossAmount.trim() + key
+);
+
+const testAmountFixed = await sha512(
+  orderId + statusCode + Number(grossAmount).toFixed(2) + key
+);
+
+console.log("SIGNATURE FORMAT TEST", {
+  original:
+    signature?.toLowerCase() === testOriginal.toLowerCase(),
+
+  amountInteger:
+    signature?.toLowerCase() === testAmountInteger.toLowerCase(),
+
+  trimmed:
+    signature?.toLowerCase() === testTrimmed.toLowerCase(),
+
+  amountFixed2:
+    signature?.toLowerCase() === testAmountFixed.toLowerCase()
 });
         const serverKeyFingerprint = await sha256(
   env.MIDTRANS_SERVER_KEY
