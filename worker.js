@@ -683,6 +683,19 @@ if (url.pathname === "/api/admin/orders" && request.method === "GET") {
           }, 400);
         }
 
+        // =========================
+// DISKON STREAMER
+// =========================
+
+const streamerDiscount =
+  streamerCode?.toUpperCase() === "VHEYRA2101";
+
+const amount = streamerDiscount
+  ? Math.round(product.price * 0.5)
+  : product.price;
+
+const discountAmount = product.price - amount;
+
         // Cari stok yang tersedia
         const stock = await env.DB.prepare(
           `SELECT id
@@ -847,9 +860,10 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
   order_id: orderId,
   payment_url: paymentData.redirect_url,
   access_token: accessToken,
-
+  amount: amount,
+  discount: discountAmount,
+  streamer_discount: streamerDiscount
 });
-
         } catch (error) {
   console.error("CHECKOUT ERROR:", error);
 
