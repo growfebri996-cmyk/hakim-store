@@ -436,44 +436,7 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
         }
 
         const notification = await request.json();
-        const midtransStatusResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(notification.order_id)}/status`,
-  {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization:
-        "Basic " +
-        btoa(env.MIDTRANS_SERVER_KEY + ":")
-    }
-  }
-);
-
-const midtransStatus = await midtransStatusResponse.json();
-
-const midtransStatusVerified =
-  midtransStatusResponse.ok &&
-  midtransStatus.order_id === notification.order_id &&
-  midtransStatus.transaction_id === notification.transaction_id &&
-  Number(midtransStatus.gross_amount) ===
-    Number(notification.gross_amount) &&
-  midtransStatus.status_code === "200" &&
-  ["settlement", "capture"].includes(
-    midtransStatus.transaction_status
-  ) &&
-  (
-    !midtransStatus.fraud_status ||
-    midtransStatus.fraud_status === "accept"
-  );
-
-console.log("MIDTRANS API VERIFICATION", {
-  verified: midtransStatusVerified,
-  httpStatus: midtransStatusResponse.status,
-  orderId: midtransStatus.order_id,
-  transactionStatus: midtransStatus.transaction_status,
-  grossAmount: midtransStatus.gross_amount,
-  fraudStatus: midtransStatus.fraud_status
-});
+        
         console.log("MIDTRANS MERCHANT CHECK", {
   merchantId: notification.merchant_id,
   orderId: notification.order_id,
@@ -646,7 +609,8 @@ console.log("SIGNATURE CHECK RESULT", {
 
         
 const statusResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(transactionId)}/status`,
+  const statusResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
   {
     method: "GET",
     headers: statusHeaders
@@ -724,17 +688,15 @@ if (
   }, 502);
 }
 
-if (!signatureValid) {
+if (
+  statusData.order_id !== orderId ||
+  statusData.transaction_id !== transactionId ||
+  Number(statusData.gross_amount) !== Number(order.amount) ||
+  statusData.currency !== "IDR"
+) {
   return respond({
     success: false,
-    message: "DIAGNOSTIC ONLY - Signature not valid",
-    midtrans_transaction_status:
-      statusData.transaction_status || null,
-    midtrans_order_id: statusData.order_id || null,
-    midtrans_transaction_id: statusData.transaction_id || null,
-    midtrans_gross_amount: statusData.gross_amount || null,
-    midtrans_signature_length:
-      statusData.signature_key?.length || 0
+    message: "Verifikasi transaksi Midtrans tidak cocok"
   }, 403);
 }
         // Cocokkan data status dengan notifikasi dan pesanan
