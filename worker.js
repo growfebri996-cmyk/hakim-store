@@ -68,6 +68,161 @@ export default {
       }
 
       // =========================
+// ADMIN DASHBOARD API
+// =========================
+
+// DASHBOARD SUMMARY
+if (url.pathname === "/api/admin/dashboard" && request.method === "GET") {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Unauthorized"
+    }, 401);
+  }
+
+  const stock = await env.DB.prepare(`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) AS available,
+      SUM(CASE WHEN status = 'reserved' THEN 1 ELSE 0 END) AS reserved,
+      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) AS sold
+    FROM inventory
+  `).first();
+
+  const orders = await env.DB.prepare(`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS paid,
+      SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled,
+      SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS revenue
+    FROM orders
+  `).first();
+
+  return respond({
+    success: true,
+    stock,
+    orders
+  });
+}
+
+
+// LIST INVENTORY
+if (url.pathname === "/api/admin/inventory" && request.method === "GET") {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Unauthorized"
+    }, 401);
+  }
+
+  const status = url.searchParams.get("status") || "";
+  const productId = url.searchParams.get("product_id") || "";
+
+  let query = `
+    SELECT
+      id,
+      product_id,
+      account_email,
+      status,
+      order_id
+    FROM inventory
+    WHERE 1 = 1
+  `;
+
+  const bindings = [];
+
+  if (["available", "reserved", "sold"].includes(status)) {
+    query += ` AND status = ?`;
+    bindings.push(status);
+  }
+
+  if (productId) {
+    query += ` AND product_id = ?`;
+    bindings.push(productId);
+  }
+
+  query += ` ORDER BY rowid DESC LIMIT 100`;
+
+  let statement = env.DB.prepare(query);
+
+  if (bindings.length > 0) {
+    statement = statement.bind(...bindings);
+  }
+
+  const result = await statement.all();
+
+  return respond({
+    success: true,
+    inventory: result.results || []
+  });
+}
+
+
+// LIST ORDERS
+if (url.pathname === "/api/admin/orders" && request.method === "GET") {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Unauthorized"
+    }, 401);
+  }
+
+  const status = url.searchParams.get("status") || "";
+  const search = url.searchParams.get("search") || "";
+
+  let query = `
+    SELECT
+      id,
+      product_id,
+      buyer,
+      whatsapp,
+      streamer_code,
+      amount,
+      status,
+      inventory_id,
+      created_at,
+      updated_at
+    FROM orders
+    WHERE 1 = 1
+  `;
+
+  const bindings = [];
+
+  if (["pending", "paid", "cancelled", "processing", "completed"].includes(status)) {
+    query += ` AND status = ?`;
+    bindings.push(status);
+  }
+
+  if (search) {
+    query += ` AND (
+      id LIKE ?
+      OR buyer LIKE ?
+      OR whatsapp LIKE ?
+    )`;
+
+    const keyword = `%${search}%`;
+
+    bindings.push(keyword, keyword, keyword);
+  }
+
+  query += ` ORDER BY rowid DESC LIMIT 100`;
+
+  let statement = env.DB.prepare(query);
+
+  if (bindings.length > 0) {
+    statement = statement.bind(...bindings);
+  }
+
+  const result = await statement.all();
+
+  return respond({
+    success: true,
+    orders: result.results || []
+  });
+}
+
+      // =========================
       // ADMIN: CEK PESANAN
       // =========================
       if (
