@@ -1001,7 +1001,7 @@ if (orderChanges !== 1 || inventoryChanges !== 1) {
       // =========================
       return env.ASSETS.fetch(request);
 
-    } catch (error) {
+   catch (error) {
       console.error("WORKER ERROR:", error);
 
       return respond({
