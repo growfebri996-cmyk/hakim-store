@@ -785,7 +785,7 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
               body: JSON.stringify({
                 transaction_details: {
                   order_id: orderId,
-                  gross_amount: product.price
+                  gross_amount: amount
                 },
                 customer_details: {
                   first_name: buyer.trim(),
