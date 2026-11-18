@@ -436,6 +436,44 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
         }
 
         const notification = await request.json();
+        const midtransStatusResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(notification.order_id)}/status`,
+  {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization:
+        "Basic " +
+        btoa(env.MIDTRANS_SERVER_KEY + ":")
+    }
+  }
+);
+
+const midtransStatus = await midtransStatusResponse.json();
+
+const midtransStatusVerified =
+  midtransStatusResponse.ok &&
+  midtransStatus.order_id === notification.order_id &&
+  midtransStatus.transaction_id === notification.transaction_id &&
+  Number(midtransStatus.gross_amount) ===
+    Number(notification.gross_amount) &&
+  midtransStatus.status_code === "200" &&
+  ["settlement", "capture"].includes(
+    midtransStatus.transaction_status
+  ) &&
+  (
+    !midtransStatus.fraud_status ||
+    midtransStatus.fraud_status === "accept"
+  );
+
+console.log("MIDTRANS API VERIFICATION", {
+  verified: midtransStatusVerified,
+  httpStatus: midtransStatusResponse.status,
+  orderId: midtransStatus.order_id,
+  transactionStatus: midtransStatus.transaction_status,
+  grossAmount: midtransStatus.gross_amount,
+  fraudStatus: midtransStatus.fraud_status
+});
         console.log("MIDTRANS MERCHANT CHECK", {
   merchantId: notification.merchant_id,
   orderId: notification.order_id,
