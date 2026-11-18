@@ -321,7 +321,7 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
           );
 
           const payment = await fetch(
-            "https://app.sandbox.midtrans.com/snap/v1/transactions",
+            "https://app.midtrans.com/snap/v1/transactions",
             {
               method: "POST",
               headers: {
@@ -615,7 +615,7 @@ console.log("SIGNATURE CHECK RESULT", {
     : orderId;
 
 const statusResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(statusLookupId)}/status`,
+  `https://api.midtrans.com/v2/${encodeURIComponent(statusLookupId)}/status`,
   {
     method: "GET",
     headers: statusHeaders
