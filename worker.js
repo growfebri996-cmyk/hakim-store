@@ -772,31 +772,53 @@ if (
           }
 
           // Jalankan kedua perubahan dalam satu batch database
-          await env.DB.batch([
-            env.DB.prepare(
-              `UPDATE orders
-               SET status = 'paid',
-                   updated_at = CURRENT_TIMESTAMP
-               WHERE id = ?
-                 AND status = 'pending'`
-            ).bind(orderId),
+          const batchResults = await env.DB.batch([
+env.DB.prepare(
+    `UPDATE orders
+     SET status = 'paid',
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?
+       AND status = 'pending'`
+  ).bind(orderId),
 
-            env.DB.prepare(
-              `UPDATE inventory
-               SET status = 'sold'
-               WHERE id = ?
-                 AND order_id = ?
-                 AND status = 'reserved'`
-            ).bind(order.inventory_id, orderId)
-          ]);
+  env.DB.prepare(
+    `UPDATE inventory
+     SET status = 'sold'
+     WHERE id = ?
+       AND order_id = ?
+       AND status = 'reserved'`
+  ).bind(order.inventory_id, orderId)
+]);
 
-          return respond({
-            success: true,
-            message: "Pembayaran berhasil diverifikasi",
-            order_id: orderId,
-            order_status: "paid"
-          });
-        }
+const orderChanges = batchResults[0]?.meta?.changes ?? 0;
+const inventoryChanges = batchResults[1]?.meta?.changes ?? 0;
+
+if (orderChanges !== 1 || inventoryChanges !== 1) {
+  const currentOrder = await env.DB.prepare(
+    `SELECT status FROM orders WHERE id = ?`
+  ).bind(orderId).first();
+
+  const currentStock = await env.DB.prepare(
+    `SELECT status, order_id FROM inventory WHERE id = ?`
+  ).bind(order.inventory_id).first();
+
+  if (
+    currentOrder?.status === "paid" &&
+    currentStock?.status === "sold" &&
+    currentStock?.order_id === orderId
+  ) {
+    return respond({
+      success: true,
+      message: "Pesanan sudah tercatat lunas",
+      order_id: orderId
+    });
+  }
+
+  return respond({
+    success: false,
+    message: "Update pesanan dan stok tidak sesuai. Perlu pemeriksaan admin."
+  }, 409);
+}
 
         // =========================
         // PEMBAYARAN GAGAL / KEDALUWARSA
