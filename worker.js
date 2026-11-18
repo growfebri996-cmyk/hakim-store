@@ -608,7 +608,7 @@ console.log("SIGNATURE CHECK RESULT", {
         }
 
         
-const statusResponse = await fetch(
+
   const statusResponse = await fetch(
   `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
   {
