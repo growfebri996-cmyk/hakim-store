@@ -748,78 +748,103 @@ if (
 
           if (order.status !== "pending") {
             return respond({
-              success: true,
-              message: "Pesanan sudah tidak dalam status pending",
-              order_status: order.status
-            });
-          }
-
-          const stock = await env.DB.prepare(
-            `SELECT id, status, order_id
-             FROM inventory
-             WHERE id = ?`
-          ).bind(order.inventory_id).first();
-
-          if (
-            !stock ||
-            stock.status !== "reserved" ||
-            stock.order_id !== orderId
-          ) {
-            return respond({
-              success: false,
-              message: "Stok pesanan tidak cocok. Perlu pemeriksaan admin."
-            }, 409);
-          }
-
-          // Jalankan kedua perubahan dalam satu batch database
-          const batchResults = await env.DB.batch([
-env.DB.prepare(
-    `UPDATE orders
-     SET status = 'paid',
-         updated_at = CURRENT_TIMESTAMP
-     WHERE id = ?
-       AND status = 'pending'`
-  ).bind(orderId),
-
-  env.DB.prepare(
-    `UPDATE inventory
-     SET status = 'sold'
-     WHERE id = ?
-       AND order_id = ?
-       AND status = 'reserved'`
-  ).bind(order.inventory_id, orderId)
-]);
-
-const orderChanges = batchResults[0]?.meta?.changes ?? 0;
-const inventoryChanges = batchResults[1]?.meta?.changes ?? 0;
-
-if (orderChanges !== 1 || inventoryChanges !== 1) {
-  const currentOrder = await env.DB.prepare(
-    `SELECT status FROM orders WHERE id = ?`
-  ).bind(orderId).first();
-
-  const currentStock = await env.DB.prepare(
-    `SELECT status, order_id FROM inventory WHERE id = ?`
-  ).bind(order.inventory_id).first();
-
+// =========================
+// PEMBAYARAN BERHASIL
+// =========================
+if (paid) {
+  // Jika sudah dibayar, jangan proses ulang
   if (
-    currentOrder?.status === "paid" &&
-    currentStock?.status === "sold" &&
-    currentStock?.order_id === orderId
+    order.status === "paid" ||
+    order.status === "processing" ||
+    order.status === "completed"
   ) {
     return respond({
       success: true,
-      message: "Pesanan sudah tercatat lunas",
-      order_id: orderId
+      message: "Pesanan sudah tercatat lunas"
     });
   }
 
-  return respond({
-    success: false,
-    message: "Update pesanan dan stok tidak sesuai. Perlu pemeriksaan admin."
-  }, 409);
-}
+  if (order.status !== "pending") {
+    return respond({
+      success: true,
+      message: "Pesanan sudah tidak dalam status pending",
+      order_status: order.status
+    });
+  }
 
+  const stock = await env.DB.prepare(
+    `SELECT id, status, order_id
+     FROM inventory
+     WHERE id = ?`
+  ).bind(order.inventory_id).first();
+
+  if (
+    !stock ||
+    stock.status !== "reserved" ||
+    stock.order_id !== orderId
+  ) {
+    return respond({
+      success: false,
+      message: "Stok pesanan tidak cocok. Perlu pemeriksaan admin."
+    }, 409);
+  }
+
+  // Jalankan kedua perubahan dalam satu batch database
+  const batchResults = await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE orders
+       SET status = 'paid',
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?
+         AND status = 'pending'`
+    ).bind(orderId),
+
+    env.DB.prepare(
+      `UPDATE inventory
+       SET status = 'sold'
+       WHERE id = ?
+         AND order_id = ?
+         AND status = 'reserved'`
+    ).bind(order.inventory_id, orderId)
+  ]);
+
+  const orderChanges = batchResults[0]?.meta?.changes ?? 0;
+  const inventoryChanges = batchResults[1]?.meta?.changes ?? 0;
+
+  if (orderChanges !== 1 || inventoryChanges !== 1) {
+    const currentOrder = await env.DB.prepare(
+      `SELECT status FROM orders WHERE id = ?`
+    ).bind(orderId).first();
+
+    const currentStock = await env.DB.prepare(
+      `SELECT status, order_id FROM inventory WHERE id = ?`
+    ).bind(order.inventory_id).first();
+
+    if (
+      currentOrder?.status === "paid" &&
+      currentStock?.status === "sold" &&
+      currentStock?.order_id === orderId
+    ) {
+      return respond({
+        success: true,
+        message: "Pesanan sudah tercatat lunas",
+        order_id: orderId
+      });
+    }
+
+    return respond({
+      success: false,
+      message: "Update pesanan dan stok tidak sesuai. Perlu pemeriksaan admin."
+    }, 409);
+  }
+
+  return respond({
+    success: true,
+    message: "Pembayaran berhasil diverifikasi",
+    order_id: orderId,
+    order_status: "paid"
+  });
+}
         // =========================
         // PEMBAYARAN GAGAL / KEDALUWARSA
         // =========================
