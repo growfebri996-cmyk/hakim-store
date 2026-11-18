@@ -130,7 +130,8 @@ async function loginAdmin(){
     document.getElementById("app").classList.remove("hidden");
 
     var p = await fetch("/api/products");
-    products = await p.json();
+var productData = await p.json();
+products = productData.products || {};
 
     var select = document.getElementById("product");
     select.innerHTML = "";
