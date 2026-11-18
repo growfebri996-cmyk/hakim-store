@@ -436,6 +436,12 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
         }
 
         const notification = await request.json();
+        console.log("MIDTRANS MERCHANT CHECK", {
+  merchantId: notification.merchant_id,
+  orderId: notification.order_id,
+  transactionId: notification.transaction_id,
+  transactionStatus: notification.transaction_status
+});
 
         const orderId = notification.order_id;
         const statusCode = String(
