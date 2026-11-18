@@ -568,6 +568,12 @@ console.log("SIGNATURE CHECK RESULT", {
   signatureValid,
   orderId
 });
+        if (!signatureValid) {
+  return respond({
+    success: false,
+    message: "Signature not valid"
+  }, 403);
+        }
 
         // Cari pesanan di database
         const order = await env.DB.prepare(
