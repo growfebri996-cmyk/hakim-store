@@ -483,6 +483,16 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
         const expectedSignature = await sha512(
           signatureInput
         );
+        console.log("WEBHOOK SIGNATURE COMPARISON", {
+  orderId,
+  statusCode,
+  grossAmount,
+  receivedSignature: signature,
+  expectedSignature,
+  signatureMatches:
+    signature?.toLowerCase() ===
+    expectedSignature.toLowerCase()
+});
         const serverKeyFingerprint = await sha256(
   env.MIDTRANS_SERVER_KEY
 );
