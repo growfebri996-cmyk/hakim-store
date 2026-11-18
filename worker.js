@@ -609,8 +609,13 @@ console.log("SIGNATURE CHECK RESULT", {
 
         
 
-  const statusResponse = await fetch(
-  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(orderId)}/status`,
+  const statusLookupId =
+  String(notification.payment_type || "").toLowerCase() === "dana"
+    ? transactionId
+    : orderId;
+
+const statusResponse = await fetch(
+  `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(statusLookupId)}/status`,
   {
     method: "GET",
     headers: statusHeaders
