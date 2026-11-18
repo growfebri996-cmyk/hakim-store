@@ -754,7 +754,7 @@ try {
             buyer.trim(),
             whatsapp.trim(),
             streamerCode,
-            product.price,
+            amount,
             tokenHash,
             stock.id
           ).run();
