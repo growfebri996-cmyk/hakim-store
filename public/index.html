@@ -1009,7 +1009,14 @@ function renderOrderResult(data) {
     order.amount ? formatRupiah(Number(order.amount)) : "-"
   );
 
-  const account = data.account || order.account;
+  const account = data.account || order.account || (
+  data.account_email || data.password
+    ? {
+        email: data.account_email,
+        password: data.password
+      }
+    : null
+);
 
   if (account) {
     const accountHeading = document.createElement("h4");
