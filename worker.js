@@ -1,3 +1,271 @@
+const ADMIN_HTML = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HAKIM STORE ADMIN</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b12;color:#eee;font-family:Arial,sans-serif}
+main{max-width:1000px;margin:auto;padding:20px}
+h1{color:#b88cff}
+.card{background:#171722;border:1px solid #30303e;border-radius:14px;padding:16px;margin-bottom:14px}
+input,select,button{width:100%;padding:12px;margin:6px 0;border-radius:9px;border:1px solid #383848;background:#11111a;color:white}
+button{background:#8247e5;border:0;font-weight:bold;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#20202c;padding:14px;border-radius:10px}
+.stat b{font-size:23px;color:#c39aff;display:block;margin-top:8px}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{padding:10px;border-bottom:1px solid #333;text-align:left;font-size:13px}
+.wrap{overflow:auto}
+small{color:#aaa}
+.hidden{display:none}
+#msg{white-space:pre-wrap;color:#ffb5b5}
+</style>
+</head>
+<body>
+<main>
+<h1>HAKIM STORE</h1>
+<small>ADMIN DASHBOARD</small>
+
+<div class="card" id="login">
+<h3>Login Admin</h3>
+<input id="token" type="password" placeholder="Masukkan ADMIN_TOKEN">
+<button onclick="loginAdmin()">LOGIN</button>
+<div id="msg"></div>
+</div>
+
+<div id="app" class="hidden">
+
+<div class="card">
+<button onclick="refreshAll()">REFRESH DATA</button>
+<button onclick="logout()" style="background:#383843">LOGOUT</button>
+</div>
+
+<h3>Ringkasan</h3>
+<div class="grid" id="stats"></div>
+
+<h3>Tambah Stok Akun</h3>
+<div class="card">
+<select id="product"></select>
+<input id="email" placeholder="Email / username akun">
+<input id="password" type="password" placeholder="Password akun">
+<button onclick="addStock()">TAMBAH STOK</button>
+<div id="stockmsg"></div>
+</div>
+
+<h3>Inventaris</h3>
+<div class="card">
+<select id="stockfilter" onchange="loadStock()">
+<option value="">Semua stok</option>
+<option value="available">Available</option>
+<option value="reserved">Reserved</option>
+<option value="sold">Sold</option>
+</select>
+<div class="wrap"><table>
+<thead><tr><th>ID</th><th>Produk</th><th>Akun</th><th>Status</th><th>Order</th></tr></thead>
+<tbody id="stocks"></tbody>
+</table></div>
+</div>
+
+<h3>Pesanan</h3>
+<div class="card">
+<input id="search" placeholder="Cari ID / nama / WhatsApp">
+<select id="orderfilter">
+<option value="">Semua status</option>
+<option value="pending">Pending</option>
+<option value="paid">Paid</option>
+<option value="cancelled">Cancelled</option>
+<option value="processing">Processing</option>
+<option value="completed">Completed</option>
+</select>
+<button onclick="loadOrders()">CARI PESANAN</button>
+<div class="wrap"><table>
+<thead><tr><th>ID</th><th>Pembeli</th><th>WhatsApp</th><th>Produk</th><th>Harga</th><th>Status</th><th>Tanggal</th></tr></thead>
+<tbody id="orders"></tbody>
+</table></div>
+</div>
+</div>
+</main>
+
+<script>
+var adminToken = "";
+var products = {};
+
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function rupiah(n){
+  return "Rp " + Number(n || 0).toLocaleString("id-ID");
+}
+
+async function api(path, options){
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers.Authorization = "Bearer " + adminToken;
+
+  var r = await fetch(path, options);
+  var d = await r.json();
+
+  if(!r.ok || d.success === false){
+    throw new Error(d.message || "Request gagal");
+  }
+  return d;
+}
+
+async function loginAdmin(){
+  adminToken = document.getElementById("token").value.trim();
+  document.getElementById("msg").textContent = "Memeriksa token...";
+
+  try{
+    var d = await api("/api/admin/dashboard");
+
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+
+    var p = await fetch("/api/products");
+    products = await p.json();
+
+    var select = document.getElementById("product");
+    select.innerHTML = "";
+
+    Object.keys(products).forEach(function(id){
+      var opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = products[id].name + " - " + rupiah(products[id].price);
+      select.appendChild(opt);
+    });
+
+    renderStats(d);
+    await refreshAll();
+  }catch(e){
+    adminToken = "";
+    document.getElementById("msg").textContent = e.message;
+  }
+}
+
+function renderStats(d){
+  var s = d.stock || {};
+  var o = d.orders || {};
+
+  document.getElementById("stats").innerHTML =
+    '<div class="stat">Total Stok<b>' + (s.total || 0) + '</b></div>' +
+    '<div class="stat">Stok Tersedia<b>' + (s.available || 0) + '</b></div>' +
+    '<div class="stat">Terjual<b>' + (s.sold || 0) + '</b></div>' +
+    '<div class="stat">Reserved<b>' + (s.reserved || 0) + '</b></div>' +
+    '<div class="stat">Total Pesanan<b>' + (o.total || 0) + '</b></div>' +
+    '<div class="stat">Pending<b>' + (o.pending || 0) + '</b></div>' +
+    '<div class="stat">Paid<b>' + (o.paid || 0) + '</b></div>' +
+    '<div class="stat">Pendapatan<b>' + rupiah(o.revenue) + '</b></div>';
+}
+
+async function refreshAll(){
+  try{
+    var d = await api("/api/admin/dashboard");
+    renderStats(d);
+    await loadStock();
+    await loadOrders();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+async function addStock(){
+  var product_id = document.getElementById("product").value;
+  var account_email = document.getElementById("email").value.trim();
+  var password = document.getElementById("password").value;
+
+  if(!account_email || !password){
+    alert("Email/username dan password wajib diisi");
+    return;
+  }
+
+  if(!confirm("Tambahkan akun ini ke stok?")) return;
+
+  try{
+    var d = await api("/api/admin/stock",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        product_id:product_id,
+        account_email:account_email,
+        password:password
+      })
+    });
+
+    document.getElementById("stockmsg").textContent = d.message || "Stok berhasil ditambahkan";
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+
+    await refreshAll();
+  }catch(e){
+    document.getElementById("stockmsg").textContent = e.message;
+  }
+}
+
+async function loadStock(){
+  try{
+    var status = document.getElementById("stockfilter").value;
+    var d = await api("/api/admin/inventory?status=" + encodeURIComponent(status));
+
+    document.getElementById("stocks").innerHTML =
+      (d.inventory || []).map(function(x){
+        return "<tr><td>" + esc(x.id) +
+          "</td><td>" + esc(products[x.product_id] ? products[x.product_id].name : x.product_id) +
+          "</td><td>" + esc(x.account_email) +
+          "</td><td>" + esc(x.status) +
+          "</td><td>" + esc(x.order_id || "-") +
+          "</td></tr>";
+      }).join("");
+  }catch(e){
+    document.getElementById("stocks").innerHTML =
+      "<tr><td colspan='5'>" + esc(e.message) + "</td></tr>";
+  }
+}
+
+async function loadOrders(){
+  try{
+    var status = document.getElementById("orderfilter").value;
+    var search = document.getElementById("search").value.trim();
+
+    var d = await api(
+      "/api/admin/orders?status=" + encodeURIComponent(status) +
+      "&search=" + encodeURIComponent(search)
+    );
+
+    document.getElementById("orders").innerHTML =
+      (d.orders || []).map(function(x){
+        return "<tr><td>" + esc(x.id) +
+          "</td><td>" + esc(x.buyer) +
+          "</td><td>" + esc(x.whatsapp) +
+          "</td><td>" + esc(products[x.product_id] ? products[x.product_id].name : x.product_id) +
+          "</td><td>" + rupiah(x.amount) +
+          "</td><td>" + esc(x.status) +
+          "</td><td>" + esc(x.created_at) +
+          "</td></tr>";
+      }).join("");
+  }catch(e){
+    document.getElementById("orders").innerHTML =
+      "<tr><td colspan='7'>" + esc(e.message) + "</td></tr>";
+  }
+}
+
+function logout(){
+  adminToken = "";
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("token").value = "";
+  document.getElementById("msg").textContent = "";
+}
+</script>
+</body>
+</html>`;
 
 const PRODUCTS = {
   safeban: { name: "Akun SAFEBAN", price: 1000 },
