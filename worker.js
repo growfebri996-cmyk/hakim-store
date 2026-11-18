@@ -301,6 +301,18 @@ export default {
       return new Response(null, { headers: cors });
     }
 
+    if (
+  url.pathname === "/admin" ||
+  url.pathname === "/admin.html"
+) {
+  return new Response(ADMIN_HTML, {
+    headers: {
+      "Content-Type": "text/html;charset=UTF-8",
+      "Cache-Control": "no-store"
+    }
+  });
+    }
+
     try {
       // =========================
       // HEALTH CHECK
