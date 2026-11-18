@@ -412,12 +412,6 @@ console.log("CHECKOUT SERVER KEY FINGERPRINT", {
   payment_url: paymentData.redirect_url,
   access_token: accessToken,
 
-  diagnostic: {
-    checkout_key_fingerprint:
-      checkoutKeyFingerprint.slice(0, 16),
-    checkout_key_length:
-      env.MIDTRANS_SERVER_KEY.length
-  }
 });
 
         } catch (error) {
