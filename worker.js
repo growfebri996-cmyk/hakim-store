@@ -731,23 +731,6 @@ if (
             transactionStatus === "capture" &&
             statusData.fraud_status === "accept"
           );
-
-        // =========================
-        // PEMBAYARAN BERHASIL
-        // =========================
-        if (paid) {
-          // Jika sudah dibayar, jangan proses ulang
-          if (order.status === "paid" ||
-              order.status === "processing" ||
-              order.status === "completed") {
-            return respond({
-              success: true,
-              message: "Pesanan sudah tercatat lunas"
-            });
-          }
-
-          if (order.status !== "pending") {
-            return respond({
 // =========================
 // PEMBAYARAN BERHASIL
 // =========================
