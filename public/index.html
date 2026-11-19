@@ -222,20 +222,12 @@ footer strong{color:var(--gold)}
       <form id="injectCheckoutForm" class="inject-form">
         <h3>DATA PEMESAN</h3>
         <div class="field">
-          <label for="injectBuyerName">Nama Pembeli</label>
-          <input id="injectBuyerName" type="text" maxlength="80" placeholder="Masukkan nama kamu" required>
+          <label for="injectBuyerEmail">Email</label>
+          <input id="injectBuyerEmail" type="text" maxlength="80" placeholder="Masukkan Email" required>
         </div>
         <div class="field">
-          <label for="injectBuyerWhatsapp">Nomor WhatsApp Pembeli</label>
-          <input id="injectBuyerWhatsapp" type="tel" maxlength="20" placeholder="Contoh: 08xxxxxxxxxx" required>
-        </div>
-        <div class="field">
-          <label for="injectPlayerId">ID Akun / Player ID CarX Street</label>
-          <input id="injectPlayerId" type="text" maxlength="80" placeholder="Masukkan Player ID kamu" required>
-        </div>
-        <div class="field">
-          <label for="injectRequest">Catatan / Request (opsional)</label>
-          <textarea id="injectRequest" maxlength="500" placeholder="Tuliskan request atau detail layanan yang diinginkan"></textarea>
+          <label for="injectBuyerPassword">password</label>
+          <input id="injectBuyerPassword" type="tel" maxlength="20" placeholder="Contoh: password" required>
         </div>
         <p class="inject-note">Setelah menekan tombol, WhatsApp akan terbuka dengan rincian pesanan yang sudah disiapkan.</p>
         <button type="submit" class="primary-button" id="injectCheckoutButton">CHECKOUT VIA WHATSAPP</button>
@@ -648,43 +640,38 @@ document.getElementById("injectCheckoutForm").addEventListener("submit",function
   event.preventDefault();
 
   const selected=INJECT_PRODUCTS.filter(product=>injectCart[product.id]>0);
+
   if(selected.length===0){
     alert("Keranjang masih kosong. Pilih layanan terlebih dahulu.");
     return;
   }
 
-  const buyer=document.getElementById("injectBuyerName").value.trim();
-  const whatsapp=document.getElementById("injectBuyerWhatsapp").value.trim();
-  const playerId=document.getElementById("injectPlayerId").value.trim();
+  const email=document.getElementById("injectBuyerEmail").value.trim();
+  const password=document.getElementById("injectBuyerPassword").value;
   const request=document.getElementById("injectRequest").value.trim();
 
-  if(!buyer||!whatsapp||!playerId){
-    alert("Nama, nomor WhatsApp, dan Player ID wajib diisi.");
-    return;
-  }
-
-  if(!/^[0-9+\-\s]{8,20}$/.test(whatsapp)){
-    alert("Format nomor WhatsApp pembeli tidak valid.");
+  if(!email||!password){
+    alert("Email dan password wajib diisi.");
     return;
   }
 
   let total=0;
   let message="*PESANAN INJECT HAKIM STORE*\n";
   message+="============================\n\n";
-  message+="*DATA PEMBELI*\n";
-  message+="Nama: "+buyer+"\n";
-  message+="WhatsApp: "+whatsapp+"\n";
-  message+="Player ID: "+playerId+"\n\n";
+  message+="*DATA AKUN PEMESAN*\n";
+  message+="Email: "+email+"\n";
+  message+="Password: "+password+"\n\n";
   message+="*DETAIL PESANAN*\n";
 
   selected.forEach((product,index)=>{
     const quantity=injectCart[product.id];
     const subtotal=product.price*quantity;
     total+=subtotal;
+
     message+=(index+1)+". "+product.name+"\n";
-    message+="   Jumlah: "+quantity+"\n";
-    message+="   Harga: "+formatRupiah(product.price)+"\n";
-    message+="   Subtotal: "+formatRupiah(subtotal)+"\n\n";
+    message+="Jumlah: "+quantity+"\n";
+    message+="Harga: "+formatRupiah(product.price)+"\n";
+    message+="Subtotal: "+formatRupiah(subtotal)+"\n\n";
   });
 
   message+="============================\n";
