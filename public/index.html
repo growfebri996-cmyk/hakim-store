@@ -648,38 +648,43 @@ document.getElementById("injectCheckoutForm").addEventListener("submit",function
   event.preventDefault();
 
   const selected=INJECT_PRODUCTS.filter(product=>injectCart[product.id]>0);
-
   if(selected.length===0){
     alert("Keranjang masih kosong. Pilih layanan terlebih dahulu.");
     return;
   }
 
-  const email=document.getElementById("injectBuyerEmail").value.trim();
-  const password=document.getElementById("injectBuyerPassword").value;
+  const buyer=document.getElementById("injectBuyerName").value.trim();
+  const whatsapp=document.getElementById("injectBuyerWhatsapp").value.trim();
+  const playerId=document.getElementById("injectPlayerId").value.trim();
   const request=document.getElementById("injectRequest").value.trim();
 
-  if(!email||!password){
-    alert("Email dan password wajib diisi.");
+  if(!buyer||!whatsapp||!playerId){
+    alert("Nama, nomor WhatsApp, dan Player ID wajib diisi.");
+    return;
+  }
+
+  if(!/^[0-9+\-\s]{8,20}$/.test(whatsapp)){
+    alert("Format nomor WhatsApp pembeli tidak valid.");
     return;
   }
 
   let total=0;
   let message="*PESANAN INJECT HAKIM STORE*\n";
   message+="============================\n\n";
-  message+="*DATA AKUN PEMESAN*\n";
-  message+="Email: "+email+"\n";
-  message+="Password: "+password+"\n\n";
+  message+="*DATA PEMBELI*\n";
+  message+="Nama: "+buyer+"\n";
+  message+="WhatsApp: "+whatsapp+"\n";
+  message+="Player ID: "+playerId+"\n\n";
   message+="*DETAIL PESANAN*\n";
 
   selected.forEach((product,index)=>{
     const quantity=injectCart[product.id];
     const subtotal=product.price*quantity;
     total+=subtotal;
-
     message+=(index+1)+". "+product.name+"\n";
-    message+="Jumlah: "+quantity+"\n";
-    message+="Harga: "+formatRupiah(product.price)+"\n";
-    message+="Subtotal: "+formatRupiah(subtotal)+"\n\n";
+    message+="   Jumlah: "+quantity+"\n";
+    message+="   Harga: "+formatRupiah(product.price)+"\n";
+    message+="   Subtotal: "+formatRupiah(subtotal)+"\n\n";
   });
 
   message+="============================\n";
