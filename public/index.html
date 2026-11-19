@@ -1,432 +1,132 @@
+HTML
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d12">
 <title>HAKIM STORE - CarX Street</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-:root {
-  --gold: #d8ad55;
-  --gold-light: #f2d28b;
-  --bg: #090b10;
-  --card: #151923;
-  --card2: #11151e;
-  --muted: #9298a5;
-  --border: rgba(216,173,85,.22);
-  --white: #f5f5f7;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#d8ad55;
+  --gold-light:#f2d28b;
+  --bg:#090b10;
+  --card:#141720;
+  --muted:#9298a5;
+  --border:rgba(216,173,85,.2);
 }
+body{font-family:Arial,sans-serif;background:var(--bg);color:#fff;line-height:1.6}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.container{width:min(1100px,92%);margin:auto}
+header{border-bottom:1px solid var(--border);background:#0d1017;position:sticky;top:0;z-index:10}
+.navbar{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{font-size:21px;font-weight:900;letter-spacing:2px;color:var(--gold)}
+.logo span{color:white}
+.nav-links{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.nav-links a{color:#ddd;text-decoration:none;font-size:13px}
+.nav-links a:hover{color:var(--gold)}
+.hero{padding:75px 0 65px;text-align:center;background:radial-gradient(ellipse at top,rgba(216,173,85,.13),transparent 60%)}
+.hero-tag{display:inline-block;color:var(--gold-light);border:1px solid var(--border);padding:6px 15px;border-radius:30px;font-size:11px;letter-spacing:2px;margin-bottom:18px}
+.hero h1{font-size:clamp(32px,7vw,55px);line-height:1.15;margin-bottom:15px}
+.hero h1 span{color:var(--gold)}
+.hero p{color:var(--muted);max-width:540px;margin:auto;font-size:14px}
+.hero-button{display:inline-block;margin-top:25px;padding:12px 25px;border-radius:8px;background:var(--gold);color:#17120a;text-decoration:none;font-weight:bold;font-size:13px}
+.section{padding:45px 0}
+.section-heading{text-align:center;margin-bottom:30px}
+.section-heading small{color:var(--gold);letter-spacing:2px;font-size:11px}
+.section-heading h2{font-size:27px;margin-top:5px}
+.section-heading p{color:var(--muted);font-size:13px;margin-top:5px}
+.product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.product-card{background:linear-gradient(145deg,#191d28,#10131a);border:1px solid var(--border);border-radius:13px;padding:22px;position:relative;overflow:hidden}
+.product-card.featured{border-color:rgba(242,210,139,.65)}
+.product-label{display:inline-block;color:var(--gold-light);background:rgba(216,173,85,.12);border:1px solid var(--border);border-radius:30px;padding:4px 10px;font-size:10px;margin-bottom:12px}
+.product-card h3{font-size:20px;margin-bottom:4px}
+.product-subtitle{color:var(--muted);font-size:12px;margin-bottom:15px}
+.price{color:var(--gold-light);font-size:25px;font-weight:bold;margin-bottom:15px}
+.feature-list{list-style:none;margin:15px 0 20px}
+.feature-list li{color:#d4d6dc;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.feature-list li::before{content:"✓";color:var(--gold);margin-right:9px;font-weight:bold}
+.buy-button{width:100%;padding:12px;border:none;border-radius:7px;background:var(--gold);color:#17120a;font-weight:bold;transition:.2s}
+.buy-button:hover,.hero-button:hover{background:var(--gold-light)}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.info-card{padding:20px;background:var(--card);border:1px solid var(--border);border-radius:10px;text-align:center}
+.info-card h3{color:var(--gold-light);font-size:14px;margin-bottom:5px}
+.info-card p{color:var(--muted);font-size:12px}
+.notice{background:#151923;border:1px solid var(--border);border-radius:10px;padding:18px;color:#c9cbd2;font-size:12px;margin-top:20px}
+.notice strong{color:var(--gold-light)}
+.order-section{background:#10131a;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.order-box{max-width:520px;margin:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px}
+.order-box h3{color:var(--gold-light);margin-bottom:5px}
+.order-box p{color:var(--muted);font-size:12px;margin-bottom:15px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;color:#ddd;margin-bottom:6px}
+.field input,.field textarea{width:100%;padding:12px;background:#0b0e14;border:1px solid #303644;border-radius:7px;color:white;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--gold)}
+.field textarea{min-height:85px;resize:vertical}
+.primary-button{width:100%;padding:12px;border:none;border-radius:7px;background:var(--gold);color:#17120a;font-weight:bold}
+.primary-button:disabled{opacity:.6;cursor:not-allowed}
+.result-box{margin-top:15px;padding:14px;border-radius:8px;background:#0b0e14;border:1px solid var(--border);font-size:12px;overflow-wrap:anywhere}
+.result-box h4{color:var(--gold-light);margin-bottom:8px}
+.result-box p{margin:5px 0}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:15px;background:rgba(0,0,0,.8);overflow-y:auto}
+.modal.show{display:flex}
+.modal-content{width:min(460px,100%);background:#151923;border:1px solid var(--border);border-radius:13px;padding:23px;position:relative;margin:auto}
+.modal-close{position:absolute;right:15px;top:12px;background:none;border:none;color:white;font-size:25px}
+.modal-content h2{color:var(--gold-light);font-size:21px;margin-bottom:5px}
+.modal-description{color:var(--muted);font-size:12px;margin-bottom:18px}
+.selected-product{padding:13px;background:#0b0e14;border:1px solid var(--border);border-radius:8px;margin-bottom:17px}
+.selected-product div{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.selected-product strong{color:var(--gold-light)}
+.modal-error{color:#ff7777;font-size:12px;margin:10px 0}
+footer{padding:28px 0;text-align:center;color:var(--muted);font-size:11px}
+footer strong{color:var(--gold)}
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* INJECT CENTER */
+.inject-section{background:linear-gradient(180deg,#0b0e14,#10131a);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.inject-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.inject-card{background:linear-gradient(145deg,#191d28,#10131a);border:1px solid var(--border);border-radius:12px;padding:17px;display:flex;flex-direction:column}
+.inject-card h3{font-size:15px;margin:8px 0 4px}
+.inject-card p{font-size:11px;color:var(--muted);min-height:30px}
+.inject-card .inject-price{font-size:20px;color:var(--gold-light);font-weight:bold;margin:10px 0}
+.inject-card button{margin-top:auto;width:100%;border:0;border-radius:7px;padding:10px;background:var(--gold);color:#17120a;font-weight:bold}
+.inject-card button:hover{background:var(--gold-light)}
+.inject-tag{font-size:9px;color:var(--gold-light);letter-spacing:1px}
+.cart-box{margin-top:25px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.cart-box h3{color:var(--gold-light);margin-bottom:12px}
+.cart-empty{color:var(--muted);font-size:12px}
+.cart-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.cart-row-name{flex:1}
+.cart-controls{display:flex;align-items:center;gap:8px}
+.cart-controls button{width:27px;height:27px;border:1px solid var(--border);border-radius:5px;background:#0b0e14;color:var(--gold-light)}
+.cart-total{display:flex;justify-content:space-between;gap:10px;margin:18px 0;font-weight:bold}
+.cart-total strong{color:var(--gold-light);font-size:20px}
+.inject-form{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+.inject-form h3{margin-bottom:15px}
+.inject-note{color:var(--muted);font-size:11px;margin:8px 0 14px}
+@media(max-width:800px){.inject-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){
+  .nav-links{gap:10px}
+  .nav-links a{font-size:11px}
+  .product-grid,.info-grid{grid-template-columns:1fr}
+  .inject-grid{grid-template-columns:1fr 1fr}
+  .hero{padding:55px 0}
 }
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  background: var(--bg);
-  color: var(--white);
-  font-family: 'Inter', Arial, sans-serif;
-  line-height: 1.7;
-}
-
-button, input, textarea {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-/* NAVBAR */
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(15,17,24,.97);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-}
-
-.navbar {
-  max-width: 1250px;
-  min-height: 88px;
-  padding: 15px 28px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.logo {
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  white-space: nowrap;
-}
-
-.logo span {
-  color: var(--gold);
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.nav-links a {
-  color: #d1d2d7;
-  font-size: 15px;
-  transition: .2s;
-}
-
-.nav-links a:hover {
-  color: var(--gold);
-}
-
-/* HERO */
-
-.hero {
-  min-height: 440px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 75px 20px;
-  background:
-    radial-gradient(ellipse at center,rgba(216,173,85,.09),transparent 65%),
-    linear-gradient(180deg,#10131b,#090b10);
-}
-
-.hero-content {
-  max-width: 800px;
-}
-
-.hero-tag {
-  color: var(--gold);
-  letter-spacing: 5px;
-  font-size: 13px;
-  margin-bottom: 15px;
-}
-
-.hero h1 {
-  font-size: clamp(38px,7vw,68px);
-  font-weight: 800;
-  letter-spacing: 3px;
-}
-
-.hero h1 span {
-  color: var(--gold);
-}
-
-.hero p {
-  color: var(--muted);
-  font-size: 17px;
-  margin: 12px 0 28px;
-}
-
-.hero-button {
-  display: inline-block;
-  padding: 15px 42px;
-  background: linear-gradient(135deg,var(--gold),var(--gold-light));
-  color: #17120a;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  transition: .2s;
-}
-
-.hero-button:hover {
-  transform: translateY(-3px);
-}
-
-/* SECTION */
-
-.section {
-  max-width: 1250px;
-  margin: auto;
-  padding: 95px 28px;
-}
-
-.section-heading {
-  text-align: center;
-  margin-bottom: 55px;
-}
-
-.section-heading .eyebrow {
-  color: var(--gold);
-  font-size: 14px;
-  letter-spacing: 4px;
-  margin-bottom: 18px;
-}
-
-.section-heading h2 {
-  font-size: clamp(29px,5vw,48px);
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.section-heading p {
-  color: var(--muted);
-  margin-top: 18px;
-  font-size: 17px;
-}
-
-/* PAKET AKUN */
-
-.package-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 28px;
-}
-
-.package-card {
-  background: linear-gradient(145deg,#191e2a,#11151e);
-  border: 1px solid rgba(216,173,85,.25);
-  border-radius: 24px;
-  padding: 42px;
-  transition: .25s;
-}
-
-.package-card:hover {
-  border-color: var(--gold);
-  transform: translateY(-3px);
-}
-
-.package-card.featured {
-  border-color: var(--gold);
-}
-
-.package-badge {
-  display: inline-block;
-  padding: 8px 17px;
-  border: 1px solid rgba(216,173,85,.35);
-  border-radius: 30px;
-  background: rgba(216,173,85,.12);
-  color: var(--gold-light);
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-.package-card h3 {
-  font-size: 29px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.package-desc {
-  color: var(--muted);
-  font-size: 16px;
-}
-
-.package-price {
-  color: var(--gold-light);
-  font-size: 43px;
-  font-weight: 700;
-  margin: 30px 0;
-}
-
-.package-features {
-  list-style: none;
-  margin-bottom: 35px;
-}
-
-.package-features li {
-  padding: 11px 0;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  color: #d1d3db;
-  font-size: 17px;
-}
-
-.package-features li::before {
-  content: "✓";
-  color: var(--gold);
-  font-weight: bold;
-  margin-right: 15px;
-}
-
-.primary-button {
-  display: block;
-  width: 100%;
-  border: 0;
-  border-radius: 11px;
-  padding: 17px 20px;
-  background: linear-gradient(135deg,#d4aa52,#e6bd69);
-  color: #17120a;
-  font-size: 18px;
-  font-weight: 700;
-  transition: .2s;
-}
-
-.primary-button:hover {
-  filter: brightness(1.08);
-  transform: translateY(-2px);
-}
-
-/* PANEL */
-
-.panel {
-  background: linear-gradient(145deg,#171c27,#11151e);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 32px;
-}
-
-/* FORM */
-
-.field {
-  margin-bottom: 22px;
-}
-
-.field label {
-  display: block;
-  color: #dedfe4;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.field input,
-.field textarea {
-  width: 100%;
-  background: #0b0d13;
-  color: white;
-  border: 1px solid #343947;
-  border-radius: 12px;
-  padding: 17px 20px;
-  font-size: 16px;
-  outline: none;
-}
-
-.field input:focus,
-.field textarea:focus {
-  border-color: var(--gold);
-}
-
-.field textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.muted {
-  color: var(--muted);
-}
-
-/* FOOTER */
-
-footer {
-  border-top: 1px solid var(--border);
-  background: #0d1017;
-  padding: 35px 20px;
-  text-align: center;
-  color: var(--muted);
-}
-
-/* RESPONSIVE */
-
-@media(min-width:850px) {
-  .package-list {
-    grid-template-columns: repeat(2,1fr);
-  }
-}
-
-@media(max-width:650px) {
-  .navbar {
-    padding: 15px 20px;
-    min-height: 75px;
-    gap: 10px;
-  }
-
-  .logo {
-    font-size: 20px;
-  }
-
-  .nav-links {
-    gap: 13px;
-  }
-
-  .nav-links a {
-    font-size: 12px;
-  }
-
-  .hero {
-    min-height: 380px;
-  }
-
-  .section {
-    padding: 75px 28px;
-  }
-
-  .section-heading {
-    margin-bottom: 45px;
-  }
-
-  .package-card {
-    padding: 40px;
-    border-radius: 24px;
-  }
-
-  .package-card h3 {
-    font-size: 26px;
-  }
-
-  .package-price {
-    font-size: 40px;
-  }
-
-  .panel {
-    padding: 25px;
-  }
-}
-
-@media(max-width:380px) {
-  .navbar {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .nav-links {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .section {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .package-card {
-    padding: 25px;
-  }
-}
+@media(max-width:390px){.inject-grid{grid-template-columns:1fr}.cart-row{align-items:flex-start;flex-wrap:wrap}}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER / NAVBAR -->
 <header>
-  <div class="navbar">
-    <a href="#home" class="logo">
-      <span>HAKIM</span> STORE
-    </a>
-
+  <div class="container navbar">
+    <div class="logo">HAKIM <span>STORE</span></div>
     <nav class="nav-links">
-      <a href="#home">Beranda</a>
+      <a href="#beranda">Beranda</a>
       <a href="#produk">Produk</a>
       <a href="#inject">Inject</a>
       <a href="#pesanan">Pesanan</a>
@@ -434,1085 +134,587 @@ footer {
   </div>
 </header>
 
-<!-- BERANDA -->
-<section class="hero" id="home">
-  <div class="hero-content">
-
-    <div class="hero-tag">WELCOME TO HAKIM STORE</div>
-
-    <h1>
-      HAKIM <span>STORE</span>
-    </h1>
-
-    <p>
-      CarX Street Account & Inject Service
-      <br>
-      Temukan paket akun dan layanan terbaik untukmu.
-    </p>
-
-    <a href="#produk" class="hero-button">
-      LIHAT PRODUK
-    </a>
-
+<main>
+<section class="hero" id="beranda">
+  <div class="container">
+    <div class="hero-tag">CARX STREET DIGITAL STORE</div>
+    <h1>WELCOME TO<br><span>HAKIM STORE</span></h1>
+    <p>Temukan berbagai pilihan akun dan layanan CarX Street. Pilih produk yang sesuai dan lakukan pemesanan dengan mudah.</p>
+    <a href="#produk" class="hero-button">LIHAT PRODUK</a>
   </div>
 </section>
 
-<!-- PRODUK AKUN -->
 <section class="section" id="produk">
-
-  <div class="section-heading">
-    <div class="eyebrow">OUR PRODUCTS</div>
-    <h2>PILIH PAKET AKUN</h2>
-    <p>Pilih paket yang kamu inginkan.</p>
-  </div>
-
-  <div class="package-list">
-
-    <!-- AKUN SAFEBAN -->
-    <div class="package-card">
-
-      <div class="package-badge">
-        SAFEBAN ACCOUNT
-      </div>
-
-      <h3>Akun SAFEBAN</h3>
-
-      <p class="package-desc">
-        Paket akun basic
-      </p>
-
-      <div class="package-price">
-        Rp30.000
-      </div>
-
-      <ul class="package-features">
-        <li>Level 30+</li>
-        <li>Silver 2.000.000</li>
-        <li>Gold 2.000</li>
-        <li>2 mobil standar</li>
-      </ul>
-
-      <button class="primary-button"
-        onclick="openCheckout('safeban')">
-        BELI SEKARANG
-      </button>
-
+  <div class="container">
+    <div class="section-heading">
+      <small>OUR PRODUCTS</small>
+      <h2>PILIH PAKET AKUN</h2>
+      <p>Pilih paket yang kamu inginkan.</p>
     </div>
 
-    <!-- PAKET 1 -->
-    <div class="package-card">
+    <div class="product-grid">
+      <article class="product-card">
+        <div class="product-label">SAFEBAN ACCOUNT</div>
+        <h3>Akun SAFEBAN</h3>
+        <p class="product-subtitle">Paket akun basic</p>
+        <div class="price">Rp30.000</div>
+        <ul class="feature-list">
+          <li>Level 30+</li><li>Silver 2.000.000</li><li>Gold 2.000</li><li>2 mobil standar</li>
+        </ul>
+        <button class="buy-button" onclick="openCheckout('safeban')">BELI SEKARANG</button>
+      </article>
 
-      <div class="package-badge">
-        STARTER PACKAGE
-      </div>
+      <article class="product-card">
+        <div class="product-label">STARTER PACKAGE</div>
+        <h3>Paket 1 - Starter</h3>
+        <p class="product-subtitle">Paket untuk memulai permainan</p>
+        <div class="price">Rp70.000</div>
+        <ul class="feature-list">
+          <li>Semua map terbuka</li><li>Level 50</li><li>Money 12.000.000</li><li>Gold 7.000</li><li>101 mobil standar</li>
+        </ul>
+        <button class="buy-button" onclick="openCheckout('paket1')">BELI SEKARANG</button>
+      </article>
 
-      <h3>Paket 1 - Starter</h3>
+      <article class="product-card">
+        <div class="product-label">PRO PACKAGE</div>
+        <h3>Paket 2 - Pro</h3>
+        <p class="product-subtitle">Paket untuk pengalaman lebih lengkap</p>
+        <div class="price">Rp150.000</div>
+        <ul class="feature-list">
+          <li>Semua map terbuka</li><li>Level 50</li><li>Money 15.000.000</li><li>Gold 10.000</li><li>Unlock banner dan avatar</li><li>12 mobil pro drift</li><li>60 mobil standar premium</li>
+        </ul>
+        <button class="buy-button" onclick="openCheckout('paket2')">BELI SEKARANG</button>
+      </article>
 
-      <p class="package-desc">
-        Paket untuk memulai permainan
-      </p>
-
-      <div class="package-price">
-        Rp70.000
-      </div>
-
-      <ul class="package-features">
-        <li>Semua map terbuka</li>
-        <li>Level 50</li>
-        <li>Money 12.000.000</li>
-        <li>Gold 7.000</li>
-        <li>101 mobil standar</li>
-      </ul>
-
-      <button class="primary-button"
-        onclick="openCheckout('paket1')">
-        BELI SEKARANG
-      </button>
-
+      <article class="product-card featured">
+        <div class="product-label">ELITE PACKAGE</div>
+        <h3>Paket 3 - Elite</h3>
+        <p class="product-subtitle">Paket paling lengkap</p>
+        <div class="price">Rp300.000</div>
+        <ul class="feature-list">
+          <li>Semua map terbuka</li><li>Level 50</li><li>Silver 20.000.000</li><li>Gold 10.000</li><li>Unlock license plate</li><li>Unlock lampu neon</li><li>Unlock livery</li><li>Unlock stiker roda</li><li>24 mobil pro drift</li><li>Sensor kemudi 70+</li>
+        </ul>
+        <button class="buy-button" onclick="openCheckout('paket3')">BELI SEKARANG</button>
+      </article>
     </div>
-
-    <!-- PAKET 2 -->
-    <div class="package-card">
-
-      <div class="package-badge">
-        PRO PACKAGE
-      </div>
-
-      <h3>Paket 2 - Pro</h3>
-
-      <p class="package-desc">
-        Paket untuk pengalaman lebih lengkap
-      </p>
-
-      <div class="package-price">
-        Rp150.000
-      </div>
-
-      <ul class="package-features">
-        <li>Semua map terbuka</li>
-        <li>Level 50</li>
-        <li>Money 15.000.000</li>
-        <li>Gold 10.000</li>
-        <li>Unlock banner dan avatar</li>
-        <li>12 mobil pro drift</li>
-        <li>60 mobil standar premium</li>
-      </ul>
-
-      <button class="primary-button"
-        onclick="openCheckout('paket2')">
-        BELI SEKARANG
-      </button>
-
-    </div>
-
-    <!-- PAKET 3 -->
-    <div class="package-card featured">
-
-      <div class="package-badge">
-        ELITE PACKAGE
-      </div>
-
-      <h3>Paket 3 - Elite</h3>
-
-      <p class="package-desc">
-        Paket paling lengkap
-      </p>
-
-      <div class="package-price">
-        Rp300.000
-      </div>
-
-      <ul class="package-features">
-        <li>Semua map terbuka</li>
-        <li>Level 50</li>
-        <li>Silver 20.000.000</li>
-        <li>Gold 10.000</li>
-        <li>Unlock license plate</li>
-        <li>Unlock lampu neon</li>
-        <li>Unlock livery</li>
-        <li>Unlock stiker roda</li>
-        <li>24 mobil pro drift</li>
-        <li>Sensor kemudi 70+</li>
-      </ul>
-
-      <button class="primary-button"
-        onclick="openCheckout('paket3')">
-        BELI SEKARANG
-      </button>
-
-    </div>
-
   </div>
 </section>
 
-<style>
-/* INJECT CENTER */
-
-.inject-grid {
-  display: grid;
-  grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 25px;
-}
-
-.inject-card {
-  background: linear-gradient(145deg,#191e2a,#11151e);
-  border: 1px solid rgba(216,173,85,.22);
-  border-radius: 20px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.inject-label {
-  color: var(--gold-light);
-  font-size: 13px;
-  letter-spacing: 2px;
-  margin-bottom: 15px;
-}
-
-.inject-card h3 {
-  font-size: 21px;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.inject-card p {
-  color: var(--muted);
-  font-size: 15px;
-  flex: 1;
-}
-
-.inject-price {
-  color: var(--gold-light);
-  font-size: 34px;
-  font-weight: 700;
-  margin: 22px 0;
-}
-
-.inject-card .primary-button {
-  min-height: 85px;
-}
-
-.cart-panel {
-  margin-top: 45px;
-}
-
-.cart-title {
-  color: var(--gold-light);
-  font-size: 27px;
-  margin-bottom: 20px;
-}
-
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  padding: 17px 0;
-  border-bottom: 1px solid rgba(255,255,255,.09);
-}
-
-.cart-item-info {
-  min-width: 0;
-}
-
-.cart-item-name {
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.cart-item-price {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.cart-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.cart-controls button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #202633;
-  color: var(--gold-light);
-  font-size: 20px;
-}
-
-.cart-quantity {
-  min-width: 20px;
-  text-align: center;
-}
-
-.cart-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  padding: 25px 0;
-  margin-top: 15px;
-  border-bottom: 1px solid var(--border);
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.cart-total span:last-child {
-  color: var(--gold-light);
-}
-
-.form-title {
-  color: var(--gold-light);
-  font-size: 27px;
-  margin-bottom: 25px;
-}
-
-.checkout-note {
-  color: var(--muted);
-  font-size: 14px;
-  margin: 20px 0;
-}
-
-@media(max-width:650px) {
-  .inject-grid {
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 25px;
-  }
-
-  .inject-card {
-    padding: 25px 30px;
-  }
-
-  .inject-card h3 {
-    font-size: 19px;
-  }
-
-  .inject-price {
-    font-size: 34px;
-  }
-
-  .inject-card .primary-button {
-    font-size: 16px;
-    padding: 14px 8px;
-    min-height: 85px;
-  }
-
-  .cart-panel {
-    padding: 30px;
-  }
-}
-
-@media(max-width:380px) {
-  .inject-grid {
-    gap: 12px;
-  }
-
-  .inject-card {
-    padding: 17px;
-  }
-
-  .inject-card h3 {
-    font-size: 17px;
-  }
-
-  .inject-price {
-    font-size: 25px;
-  }
-
-  .inject-card .primary-button {
-    font-size: 13px;
-  }
-}
-</style>
-
-<!-- INJECT CENTER -->
-<section class="section" id="inject">
-
-  <div class="section-heading">
-    <div class="eyebrow">HAKIM STORE SERVICE</div>
-    <h2>INJECT CENTER</h2>
-    <p>
-      Pilih satu atau beberapa layanan, lalu masukkan ke keranjang.
-    </p>
-  </div>
-
-  <div class="inject-grid">
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Inject Silver & Gold Bebas Request</h3>
-      <p>Silver dan Gold sesuai request</p>
-      <div class="inject-price">Rp 30.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('silvergold',1)">
-        TAMBAH KE KERANJANG
-      </button>
+<!-- HALAMAN INJECT CENTER -->
+<section class="section inject-section" id="inject">
+  <div class="container">
+    <div class="section-heading">
+      <small>HAKIM STORE SERVICE</small>
+      <h2>INJECT CENTER</h2>
+      <p>Pilih satu atau beberapa layanan, lalu masukkan ke keranjang.</p>
     </div>
 
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock All Map</h3>
-      <p>Layanan membuka semua map</p>
-      <div class="inject-price">Rp 30.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('map',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
+    <div class="inject-grid" id="injectProducts"></div>
 
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock 1 Mobil Premium</h3>
-      <p>Unlock satu mobil premium</p>
-      <div class="inject-price">Rp 15.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('premiumcar',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
+    <div class="cart-box">
+      <h3>KERANJANG INJECT <span id="injectCartCount">(0)</span></h3>
+      <div id="injectCartItems"><p class="cart-empty">Keranjang masih kosong. Silakan pilih layanan di atas.</p></div>
+      <div class="cart-total">
+        <span>Total Pembayaran</span>
+        <strong id="injectCartTotal">Rp0</strong>
+      </div>
 
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock All Mobil</h3>
-      <p>Layanan unlock semua mobil</p>
-      <div class="inject-price">Rp 60.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('allcars',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Accessories Banner</h3>
-      <p>Unlock accessories banner</p>
-      <div class="inject-price">Rp 25.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('banner',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Lampu Kolong</h3>
-      <p>Unlock lampu neon kolong</p>
-      <div class="inject-price">Rp 45.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('neon',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Stiker Roda</h3>
-      <p>Unlock stiker roda kendaraan</p>
-      <div class="inject-price">Rp 20.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('wheelsticker',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Plat</h3>
-      <p>Unlock plat kendaraan</p>
-      <div class="inject-price">Rp 20.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('plate',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Inject Sensor Kemudi</h3>
-      <p>Layanan sensor kemudi</p>
-      <div class="inject-price">Rp 35.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('sensor',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Inject Top Speed 700 KMH+</h3>
-      <p>Pengaturan top speed kendaraan</p>
-      <div class="inject-price">Rp 40.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('topspeed',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Street Pass</h3>
-      <p>Unlock Street Pass</p>
-      <div class="inject-price">Rp 30.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('streetpass',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-    <div class="inject-card">
-      <div class="inject-label">CARX STREET SERVICE</div>
-      <h3>Unlock Livery</h3>
-      <p>Unlock livery kendaraan</p>
-      <div class="inject-price">Rp 50.000</div>
-      <button class="primary-button"
-        onclick="changeInjectQty('livery',1)">
-        TAMBAH KE KERANJANG
-      </button>
-    </div>
-
-  </div>
-
-  <!-- KERANJANG -->
-  <div class="panel cart-panel">
-
-    <h3 class="cart-title">
-      KERANJANG INJECT (<span id="injectCartCount">0</span>)
-    </h3>
-
-    <div id="injectCartList">
-      <p class="muted">
-        Keranjang masih kosong. Silakan pilih layanan di atas.
-      </p>
-    </div>
-
-    <div class="cart-total">
-      <span>Total Pembayaran</span>
-      <span id="injectTotal">Rp 0</span>
-    </div>
-
-    <!-- DATA PEMESAN -->
-    <div style="margin-top:35px;">
-
-      <h3 class="form-title">DATA PEMESAN</h3>
-
-      <form id="injectCheckoutForm">
-
+      <form id="injectCheckoutForm" class="inject-form">
+        <h3>DATA PEMESAN</h3>
         <div class="field">
-          <label for="injectBuyerEmail">
-            Email Akun CarX Street
-          </label>
-          <input
-            type="email"
-            id="injectBuyerEmail"
-            placeholder="Masukkan email akun"
-            required>
+          <label for="injectBuyerName">Nama Pembeli</label>
+          <input id="injectBuyerName" type="text" maxlength="80" placeholder="Masukkan nama kamu" required>
         </div>
-
         <div class="field">
-          <label for="injectBuyerPassword">
-            Password Akun CarX Street
-          </label>
-          <input
-            type="password"
-            id="injectBuyerPassword"
-            placeholder="Masukkan password akun"
-            required>
+          <label for="injectBuyerWhatsapp">Nomor WhatsApp Pembeli</label>
+          <input id="injectBuyerWhatsapp" type="tel" maxlength="20" placeholder="Contoh: 08xxxxxxxxxx" required>
         </div>
-
-        <p class="checkout-note">
-          Setelah menekan tombol, WhatsApp akan terbuka dengan rincian pesanan yang sudah disiapkan.
-        </p>
-
-        <button type="submit" class="primary-button">
-          CHECKOUT VIA WHATSAPP
-        </button>
-
+        <div class="field">
+          <label for="injectPlayerId">ID Akun / Player ID CarX Street</label>
+          <input id="injectPlayerId" type="text" maxlength="80" placeholder="Masukkan Player ID kamu" required>
+        </div>
+        <div class="field">
+          <label for="injectRequest">Catatan / Request (opsional)</label>
+          <textarea id="injectRequest" maxlength="500" placeholder="Tuliskan request atau detail layanan yang diinginkan"></textarea>
+        </div>
+        <p class="inject-note">Setelah menekan tombol, WhatsApp akan terbuka dengan rincian pesanan yang sudah disiapkan.</p>
+        <button type="submit" class="primary-button" id="injectCheckoutButton">CHECKOUT VIA WHATSAPP</button>
       </form>
-
     </div>
   </div>
-
 </section>
 
-<!-- CHECKOUT PAKET AKUN -->
-<div id="checkoutModal" style="display:none;">
-  <div class="section" style="max-width:700px;">
-    <div class="panel">
-
-      <h2 class="form-title">CHECKOUT PAKET AKUN</h2>
-
-      <form id="checkoutForm">
-
-        <div class="field">
-          <label for="buyerName">Nama Pembeli</label>
-          <input id="buyerName" type="text"
-            placeholder="Masukkan nama" required>
-        </div>
-
-        <div class="field">
-          <label for="buyerWhatsapp">Nomor WhatsApp</label>
-          <input id="buyerWhatsapp" type="tel"
-            placeholder="Masukkan nomor WhatsApp" required>
-        </div>
-
-        <div class="field">
-          <label for="streamerCode">Kode Referral / Streamer</label>
-          <input id="streamerCode" type="text"
-            placeholder="Masukkan kode jika ada">
-        </div>
-
-        <button type="submit" class="primary-button">
-          LANJUTKAN PEMBAYARAN
-        </button>
-
-        <button type="button" class="primary-button"
-          style="margin-top:12px;background:#303746;color:white;"
-          onclick="closeCheckout()">
-          BATAL
-        </button>
-
-      </form>
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <small>WHY HAKIM STORE</small>
+      <h2>INFORMASI PEMBELIAN</h2>
     </div>
+    <div class="info-grid">
+      <div class="info-card"><h3>Pembayaran QRIS</h3><p>Pembayaran paket akun diproses melalui halaman pembayaran Midtrans.</p></div>
+      <div class="info-card"><h3>Proses Otomatis</h3><p>Status pesanan paket akun diperbarui berdasarkan notifikasi pembayaran.</p></div>
+      <div class="info-card"><h3>Data Akun</h3><p>Informasi akun ditampilkan setelah pembayaran berhasil diverifikasi.</p></div>
+    </div>
+    <div class="notice">
+      <strong>Perhatian:</strong> Pastikan nomor WhatsApp dan nama pembeli sudah benar. Jangan tutup halaman pembayaran sebelum proses pembayaran selesai. Data akun hanya dapat ditampilkan setelah server memverifikasi pembayaran.
+    </div>
+  </div>
+</section>
+
+<section class="section order-section" id="pesanan">
+  <div class="container">
+    <div class="section-heading">
+      <small>ORDER TRACKING</small>
+      <h2>CEK PESANAN</h2>
+      <p>Periksa status pesanan dan informasi akunmu.</p>
+    </div>
+    <div class="order-box">
+      <h3>Pesanan Terakhir</h3>
+      <p>Gunakan tombol di bawah untuk memeriksa pesanan yang dibuat dari perangkat ini.</p>
+      <button class="primary-button" id="checkLastOrderButton" onclick="checkLastOrder()">PERIKSA PESANAN TERAKHIR</button>
+      <div id="orderResult" class="result-box hidden"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <strong>HAKIM STORE</strong><br>
+    CarX Street Digital Store<br>
+    © 2026 HAKIM STORE. All rights reserved.
+  </div>
+</footer>
+
+<!-- MODAL CHECKOUT PAKET AKUN -->
+<div class="modal" id="checkoutModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeCheckout()" aria-label="Tutup">×</button>
+    <h2>Checkout Pesanan</h2>
+    <p class="modal-description">Lengkapi data berikut untuk melanjutkan pembayaran.</p>
+    <div class="selected-product">
+      <div><span id="selectedName">Nama Paket</span><strong id="selectedPrice">Rp0</strong></div>
+    </div>
+    <form id="checkoutForm">
+      <div class="field">
+        <label for="buyerName">Nama Pembeli</label>
+        <input id="buyerName" type="text" placeholder="Masukkan nama kamu" maxlength="80" required>
+      </div>
+      <div class="field">
+        <label for="buyerWhatsapp">Nomor WhatsApp</label>
+        <input id="buyerWhatsapp" type="tel" placeholder="Contoh: 08xxxxxxxxxx" maxlength="20" required>
+      </div>
+      <div class="field">
+        <label for="streamerCode">Kode Streamer (opsional)</label>
+        <input id="streamerCode" type="text" placeholder="Masukkan kode streamer jika ada" maxlength="40">
+      </div>
+      <p class="modal-error hidden" id="checkoutError"></p>
+      <button type="submit" class="primary-button" id="checkoutButton">LANJUTKAN PEMBAYARAN</button>
+    </form>
   </div>
 </div>
 
-<!-- CEK PESANAN -->
-<section class="section" id="pesanan">
-
-  <div class="section-heading">
-    <div class="eyebrow">ORDER TRACKING</div>
-    <h2>CEK PESANAN</h2>
-    <p>Pantau status pesanan HAKIM STORE.</p>
-  </div>
-
-  <div class="panel">
-
-    <div class="field">
-      <label for="orderIdInput">ID Pesanan</label>
-      <input id="orderIdInput"
-        type="text"
-        placeholder="Masukkan ID pesanan">
-    </div>
-
-    <button type="button" class="primary-button"
-      onclick="checkLastOrder()">
-      CEK STATUS PESANAN
-    </button>
-
-    <div id="orderResult" style="margin-top:25px;"></div>
-
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <h3 style="color:var(--gold-light);margin-bottom:8px;">
-    HAKIM STORE
-  </h3>
-  <p>CarX Street Account & Inject Service</p>
-  <p style="margin-top:12px;">
-    © 2026 HAKIM STORE. All Rights Reserved.
-  </p>
-</footer>
-
 <script>
+"use strict";
 
-/* =========================
-   DATA PAKET AKUN
-========================= */
-
-const PRODUCTS = [
-  {id:"safeban",name:"Akun SAFEBAN",price:30000},
-  {id:"paket1",name:"Paket 1 - Starter",price:70000},
-  {id:"paket2",name:"Paket 2 - Pro",price:150000},
-  {id:"paket3",name:"Paket 3 - Elite",price:300000}
-];
+/* =====================================
+   DATA PRODUK PAKET AKUN
+===================================== */
+const PRODUCTS = {
+  safeban:{name:"Akun SAFEBAN",price:30000},
+  paket1:{name:"Paket 1 - Starter",price:70000},
+  paket2:{name:"Paket 2 - Pro",price:150000},
+  paket3:{name:"Paket 3 - Elite",price:300000}
+};
 
 let selectedProductId = null;
 
-function formatRupiah(value) {
-  return "Rp " + new Intl.NumberFormat("id-ID").format(value);
+function formatRupiah(number){
+  return new Intl.NumberFormat("id-ID",{
+    style:"currency",
+    currency:"IDR",
+    maximumFractionDigits:0
+  }).format(number);
 }
 
-/* =========================
-   MODAL CHECKOUT AKUN
-========================= */
-
-function openCheckout(productId) {
-  selectedProductId = productId;
-
-  const modal = document.getElementById("checkoutModal");
-  modal.style.display = "block";
-
-  modal.scrollIntoView({
-    behavior:"smooth",
-    block:"start"
-  });
+/* =====================================
+   CHECKOUT PAKET AKUN - MIDTRANS
+===================================== */
+function openCheckout(productId){
+  const product=PRODUCTS[productId];
+  if(!product){alert("Produk tidak ditemukan.");return;}
+  selectedProductId=productId;
+  document.getElementById("selectedName").textContent=product.name;
+  document.getElementById("selectedPrice").textContent=formatRupiah(product.price);
+  document.getElementById("checkoutError").classList.add("hidden");
+  document.getElementById("checkoutModal").classList.add("show");
 }
 
-function closeCheckout() {
-  document.getElementById("checkoutModal").style.display = "none";
+function closeCheckout(){
+  document.getElementById("checkoutModal").classList.remove("show");
 }
 
-/* =========================
-   CHECKOUT PAKET AKUN
-========================= */
+document.getElementById("checkoutForm").addEventListener("submit",checkout);
 
-document.getElementById("checkoutForm")
-.addEventListener("submit", async function(event) {
-
+async function checkout(event){
   event.preventDefault();
+  const product=PRODUCTS[selectedProductId];
+  if(!product){showCheckoutError("Silakan pilih produk terlebih dahulu.");return;}
 
-  if (!selectedProductId) {
-    alert("Silakan pilih paket terlebih dahulu.");
-    return;
+  const buyer=document.getElementById("buyerName").value.trim();
+  const whatsapp=document.getElementById("buyerWhatsapp").value.trim();
+  const streamer=document.getElementById("streamerCode").value.trim();
+
+  if(!buyer||!whatsapp){showCheckoutError("Nama dan nomor WhatsApp wajib diisi.");return;}
+  if(!/^[0-9+\-\s]{8,20}$/.test(whatsapp)){
+    showCheckoutError("Format nomor WhatsApp tidak valid.");return;
   }
 
-  const buyer = document.getElementById("buyerName").value.trim();
-  const whatsapp = document.getElementById("buyerWhatsapp").value.trim();
-  const streamerCode = document.getElementById("streamerCode").value.trim();
+  const button=document.getElementById("checkoutButton");
+  button.disabled=true;
+  button.textContent="MEMPROSES PESANAN...";
+  document.getElementById("checkoutError").classList.add("hidden");
 
-  const button = this.querySelector('button[type="submit"]');
-
-  button.disabled = true;
-  button.textContent = "MEMPROSES...";
-
-  try {
-
-    const response = await fetch("/api/orders", {
+  try{
+    const response=await fetch("/api/orders",{
       method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
+      headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         product_id:selectedProductId,
         buyer:buyer,
         whatsapp:whatsapp,
-        streamer_code:streamerCode
+        streamer_code:streamer
       })
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Gagal membuat pesanan.");
+    const data=await response.json();
+    if(!response.ok||!data.success){
+      throw new Error(data.message||data.error||"Gagal membuat pesanan.");
+    }
+    if(!data.payment_url||!data.order_id||!data.access_token){
+      throw new Error("Data pembayaran dari server tidak lengkap.");
     }
 
-    if (data.order_id) {
-      sessionStorage.setItem("hakim_order_id",data.order_id);
-    }
+    sessionStorage.setItem("hakim_order_id",data.order_id);
+    sessionStorage.setItem("hakim_access_token",data.access_token);
+    window.location.assign(data.payment_url);
+  }catch(error){
+    showCheckoutError(error.message||"Terjadi kesalahan.");
+    button.disabled=false;
+    button.textContent="LANJUTKAN PEMBAYARAN";
+  }
+}
 
-    if (data.access_token) {
-      sessionStorage.setItem("hakim_access_token",data.access_token);
-    }
+function showCheckoutError(message){
+  const errorElement=document.getElementById("checkoutError");
+  errorElement.textContent=message;
+  errorElement.classList.remove("hidden");
+}
 
-    if (data.payment_url) {
-      window.location.href = data.payment_url;
-    } else {
-      alert("Pesanan dibuat, tetapi link pembayaran tidak ditemukan.");
-    }
+/* =====================================
+   CEK PESANAN TERAKHIR
+===================================== */
+async function checkLastOrder(){
+  const orderId=sessionStorage.getItem("hakim_order_id");
+  const accessToken=sessionStorage.getItem("hakim_access_token");
+  const button=document.getElementById("checkLastOrderButton");
+  const result=document.getElementById("orderResult");
 
-  } catch(error) {
-
-    alert(error.message || "Terjadi kesalahan.");
-
-  } finally {
-
-    button.disabled = false;
-    button.textContent = "LANJUTKAN PEMBAYARAN";
-
+  if(!orderId||!accessToken){
+    result.classList.remove("hidden");
+    result.textContent="Data pesanan terakhir tidak ditemukan di sesi browser ini.";
+    return;
   }
 
-});
+  button.disabled=true;
+  button.textContent="MEMERIKSA...";
+  result.classList.remove("hidden");
+  result.textContent="Sedang mengambil informasi pesanan...";
 
-/* =========================
-   DATA PRODUK INJECT
-========================= */
+  try{
+    const response=await fetch("/api/orders/"+encodeURIComponent(orderId),{
+      method:"GET",
+      headers:{"Authorization":"Bearer "+accessToken}
+    });
+    const data=await response.json();
+    if(!response.ok||!data.success){
+      throw new Error(data.message||data.error||"Gagal mengambil status pesanan.");
+    }
+    renderOrderResult(data);
+  }catch(error){
+    result.textContent=error.message||"Terjadi kesalahan saat memeriksa pesanan.";
+  }finally{
+    button.disabled=false;
+    button.textContent="PERIKSA PESANAN TERAKHIR";
+  }
+}
 
-const INJECT_WHATSAPP = "6283141954963";
+/* =====================================
+   TAMPILKAN STATUS PESANAN
+===================================== */
+function renderOrderResult(data){
+  const result=document.getElementById("orderResult");
+  const order=data.order||data;
+  const status=String(order.status||order.order_status||"pending").toLowerCase();
 
-const INJECT_PRODUCTS = [
-  {id:"silvergold",name:"Inject Silver & Gold Bebas Request",price:30000},
-  {id:"map",name:"Unlock All Map",price:30000},
-  {id:"premiumcar",name:"Unlock 1 Mobil Premium",price:15000},
-  {id:"allcars",name:"Unlock All Mobil",price:60000},
-  {id:"banner",name:"Unlock Accessories Banner",price:25000},
-  {id:"neon",name:"Unlock Lampu Kolong",price:45000},
-  {id:"wheelsticker",name:"Unlock Stiker Roda",price:20000},
-  {id:"plate",name:"Unlock Plat",price:20000},
-  {id:"sensor",name:"Inject Sensor Kemudi",price:35000},
-  {id:"topspeed",name:"Inject Top Speed 700 KMH+",price:40000},
-  {id:"streetpass",name:"Unlock Street Pass",price:30000},
-  {id:"livery",name:"Unlock Livery",price:50000}
+  const statusNames={
+    pending:"Menunggu pembayaran",
+    paid:"Pembayaran berhasil",
+    processing:"Sedang diproses",
+    completed:"Selesai",
+    cancelled:"Dibatalkan",
+    expired:"Kedaluwarsa"
+  };
+
+  const isPaid=["paid","processing","completed"].includes(status);
+  result.replaceChildren();
+
+  const heading=document.createElement("h4");
+  heading.textContent="INFORMASI PESANAN";
+  result.appendChild(heading);
+
+  addResultLine(result,"ID Pesanan",order.id||order.order_id||"-");
+  addResultLine(result,"Produk",order.product_name||order.product_id||order.product||"-");
+  addResultLine(result,"Status",statusNames[status]||status);
+  addResultLine(result,"Total",order.amount?formatRupiah(Number(order.amount)):"-");
+
+  const account=data.account||order.account||(
+    data.account_email||data.password
+      ?{email:data.account_email,password:data.password}
+      :null
+  );
+
+  if(isPaid&&account){
+    const accountHeading=document.createElement("h4");
+    accountHeading.textContent="INFORMASI AKUN";
+    accountHeading.style.marginTop="15px";
+    result.appendChild(accountHeading);
+    addResultLine(result,"Email",account.email||"-");
+    addResultLine(result,"Password",account.password||"-");
+  }else if(isPaid){
+    addResultLine(result,"Informasi","Pembayaran berhasil. Data akun belum tersedia, silakan periksa kembali.");
+  }else{
+    addResultLine(result,"Informasi","Data akun akan ditampilkan setelah pembayaran berhasil diverifikasi.");
+  }
+}
+
+function addResultLine(container,label,value){
+  const paragraph=document.createElement("p");
+  const strong=document.createElement("strong");
+  strong.textContent=label+": ";
+  const span=document.createElement("span");
+  span.textContent=String(value);
+  paragraph.appendChild(strong);
+  paragraph.appendChild(span);
+  container.appendChild(paragraph);
+}
+
+/* =====================================
+   DATA 12 PRODUK INJECT
+===================================== */
+const INJECT_WHATSAPP="6283141954963";
+
+const INJECT_PRODUCTS=[
+  {id:"silvergold",name:"Inject Silver & Gold Bebas Request",price:30000,description:"Silver dan Gold sesuai request"},
+  {id:"allmap",name:"Unlock All Map",price:30000,description:"Layanan membuka semua map"},
+  {id:"premiumcar",name:"Unlock 1 Mobil Premium",price:15000,description:"Unlock satu mobil premium"},
+  {id:"allcar",name:"Unlock All Mobil",price:60000,description:"Layanan unlock semua mobil"},
+  {id:"banner",name:"Unlock Accessories Banner",price:25000,description:"Unlock accessories banner"},
+  {id:"neon",name:"Unlock Lampu Kolong",price:45000,description:"Unlock lampu neon kolong"},
+  {id:"wheelsticker",name:"Unlock Stiker Roda",price:20000,description:"Unlock stiker pada roda"},
+  {id:"plate",name:"Unlock Plat",price:20000,description:"Unlock license plate"},
+  {id:"steering",name:"Inject Sensor Kemudi",price:35000,description:"Inject sensor kemudi"},
+  {id:"topspeed",name:"Inject Top Speed 700 KMH+",price:40000,description:"Layanan top speed 700 KMH+"},
+  {id:"streetpass",name:"Unlock Street Pass",price:30000,description:"Unlock Street Pass"},
+  {id:"livery",name:"Unlock Livery",price:50000,description:"Unlock livery kendaraan"}
 ];
 
-let injectCart = {};
+const injectCart={};
 
-/* =========================
-   TAMBAH / KURANG KERANJANG
-========================= */
+/* =====================================
+   TAMPILKAN PRODUK INJECT
+===================================== */
+function renderInjectProducts(){
+  const container=document.getElementById("injectProducts");
+  container.replaceChildren();
 
-function changeInjectQty(productId,amount) {
+  INJECT_PRODUCTS.forEach(product=>{
+    const card=document.createElement("article");
+    card.className="inject-card";
 
-  const current = injectCart[productId] || 0;
-  const next = current + amount;
+    const tag=document.createElement("span");
+    tag.className="inject-tag";
+    tag.textContent="CARX STREET SERVICE";
 
-  if (next <= 0) {
-    delete injectCart[productId];
-  } else {
-    injectCart[productId] = next;
-  }
+    const title=document.createElement("h3");
+    title.textContent=product.name;
 
+    const description=document.createElement("p");
+    description.textContent=product.description;
+
+    const price=document.createElement("div");
+    price.className="inject-price";
+    price.textContent=formatRupiah(product.price);
+
+    const button=document.createElement("button");
+    button.type="button";
+    button.textContent="TAMBAH KE KERANJANG";
+    button.addEventListener("click",()=>addInjectItem(product.id));
+
+    card.append(tag,title,description,price,button);
+    container.appendChild(card);
+  });
+}
+
+/* =====================================
+   TAMBAH / UBAH JUMLAH KERANJANG
+===================================== */
+function addInjectItem(id){
+  const product=INJECT_PRODUCTS.find(item=>item.id===id);
+  if(!product)return;
+  injectCart[id]=(injectCart[id]||0)+1;
   renderInjectCart();
 }
 
-/* =========================
-   TAMPILKAN KERANJANG
-========================= */
-
-function renderInjectCart() {
-
-  const list = document.getElementById("injectCartList");
-  const totalElement = document.getElementById("injectTotal");
-  const countElement = document.getElementById("injectCartCount");
-
-  list.replaceChildren();
-
-  let total = 0;
-  let count = 0;
-
-  INJECT_PRODUCTS.forEach(product => {
-
-    const quantity = injectCart[product.id] || 0;
-
-    if (quantity <= 0) return;
-
-    count += quantity;
-
-    const subtotal = product.price * quantity;
-    total += subtotal;
-
-    const item = document.createElement("div");
-    item.className = "cart-item";
-
-    const info = document.createElement("div");
-    info.className = "cart-item-info";
-
-    const name = document.createElement("div");
-    name.className = "cart-item-name";
-    name.textContent = product.name;
-
-    const price = document.createElement("div");
-    price.className = "cart-item-price";
-    price.textContent = formatRupiah(subtotal);
-
-    info.append(name,price);
-
-    const controls = document.createElement("div");
-    controls.className = "cart-controls";
-
-    const minus = document.createElement("button");
-    minus.type = "button";
-    minus.textContent = "−";
-    minus.onclick = () => changeInjectQty(product.id,-1);
-
-    const number = document.createElement("span");
-    number.className = "cart-quantity";
-    number.textContent = quantity;
-
-    const plus = document.createElement("button");
-    plus.type = "button";
-    plus.textContent = "+";
-    plus.onclick = () => changeInjectQty(product.id,1);
-
-    controls.append(minus,number,plus);
-    item.append(info,controls);
-
-    list.appendChild(item);
-
-  });
-
-  if (count === 0) {
-
-    const empty = document.createElement("p");
-    empty.className = "muted";
-    empty.textContent =
-      "Keranjang masih kosong. Silakan pilih layanan di atas.";
-
-    list.appendChild(empty);
-
-  }
-
-  totalElement.textContent = formatRupiah(total);
-  countElement.textContent = count;
+function changeInjectQuantity(id,change){
+  if(!injectCart[id])return;
+  injectCart[id]+=change;
+  if(injectCart[id]<=0)delete injectCart[id];
+  renderInjectCart();
 }
 
-/* =========================
-   CHECKOUT INJECT WHATSAPP
-========================= */
+/* =====================================
+   TAMPILKAN KERANJANG
+===================================== */
+function renderInjectCart(){
+  const container=document.getElementById("injectCartItems");
+  container.replaceChildren();
 
-document.getElementById("injectCheckoutForm")
-.addEventListener("submit",function(event) {
+  let total=0;
+  let count=0;
+  const selected=INJECT_PRODUCTS.filter(product=>injectCart[product.id]>0);
 
+  if(selected.length===0){
+    const empty=document.createElement("p");
+    empty.className="cart-empty";
+    empty.textContent="Keranjang masih kosong. Silakan pilih layanan di atas.";
+    container.appendChild(empty);
+  }
+
+  selected.forEach(product=>{
+    const quantity=injectCart[product.id];
+    const subtotal=product.price*quantity;
+    total+=subtotal;
+    count+=quantity;
+
+    const row=document.createElement("div");
+    row.className="cart-row";
+
+    const name=document.createElement("div");
+    name.className="cart-row-name";
+    name.textContent=product.name+" — "+formatRupiah(subtotal);
+
+    const controls=document.createElement("div");
+    controls.className="cart-controls";
+
+    const minus=document.createElement("button");
+    minus.type="button";
+    minus.textContent="−";
+    minus.setAttribute("aria-label","Kurangi jumlah");
+    minus.addEventListener("click",()=>changeInjectQuantity(product.id,-1));
+
+    const qty=document.createElement("span");
+    qty.textContent=String(quantity);
+
+    const plus=document.createElement("button");
+    plus.type="button";
+    plus.textContent="+";
+    plus.setAttribute("aria-label","Tambah jumlah");
+    plus.addEventListener("click",()=>changeInjectQuantity(product.id,1));
+
+    controls.append(minus,qty,plus);
+    row.append(name,controls);
+    container.appendChild(row);
+  });
+
+  document.getElementById("injectCartCount").textContent="("+count+")";
+  document.getElementById("injectCartTotal").textContent=formatRupiah(total);
+}
+
+/* =====================================
+   CHECKOUT INJECT VIA WHATSAPP
+===================================== */
+document.getElementById("injectCheckoutForm").addEventListener("submit",function(event){
   event.preventDefault();
 
-  const selected = INJECT_PRODUCTS.filter(
-    product => (injectCart[product.id] || 0) > 0
-  );
-
-  if (selected.length === 0) {
-    alert("Keranjang masih kosong.");
+  const selected=INJECT_PRODUCTS.filter(product=>injectCart[product.id]>0);
+  if(selected.length===0){
+    alert("Keranjang masih kosong. Pilih layanan terlebih dahulu.");
     return;
   }
 
-  const email =
-    document.getElementById("injectBuyerEmail").value.trim();
+  const buyer=document.getElementById("injectBuyerName").value.trim();
+  const whatsapp=document.getElementById("injectBuyerWhatsapp").value.trim();
+  const playerId=document.getElementById("injectPlayerId").value.trim();
+  const request=document.getElementById("injectRequest").value.trim();
 
-  const password =
-    document.getElementById("injectBuyerPassword").value;
-
-  if (!email || !password) {
-    alert("Email dan password wajib diisi.");
+  if(!buyer||!whatsapp||!playerId){
+    alert("Nama, nomor WhatsApp, dan Player ID wajib diisi.");
     return;
   }
 
-  let total = 0;
+  if(!/^[0-9+\-\s]{8,20}$/.test(whatsapp)){
+    alert("Format nomor WhatsApp pembeli tidak valid.");
+    return;
+  }
 
-  let message = "*PESANAN INJECT HAKIM STORE*\n";
-  message += "============================\n\n";
-  message += "*DATA AKUN PEMESAN*\n";
-  message += "Email: " + email + "\n";
-  message += "Password: " + password + "\n\n";
-  message += "*DETAIL PESANAN*\n";
+  let total=0;
+  let message="*PESANAN INJECT HAKIM STORE*\n";
+  message+="============================\n\n";
+  message+="*DATA PEMBELI*\n";
+  message+="Nama: "+buyer+"\n";
+  message+="WhatsApp: "+whatsapp+"\n";
+  message+="Player ID: "+playerId+"\n\n";
+  message+="*DETAIL PESANAN*\n";
 
-  selected.forEach((product,index) => {
-
-    const quantity = injectCart[product.id];
-    const subtotal = product.price * quantity;
-
-    total += subtotal;
-
-    message += (index + 1) + ". " + product.name + "\n";
-    message += "Jumlah: " + quantity + "\n";
-    message += "Harga: " + formatRupiah(product.price) + "\n";
-    message += "Subtotal: " + formatRupiah(subtotal) + "\n\n";
-
+  selected.forEach((product,index)=>{
+    const quantity=injectCart[product.id];
+    const subtotal=product.price*quantity;
+    total+=subtotal;
+    message+=(index+1)+". "+product.name+"\n";
+    message+="   Jumlah: "+quantity+"\n";
+    message+="   Harga: "+formatRupiah(product.price)+"\n";
+    message+="   Subtotal: "+formatRupiah(subtotal)+"\n\n";
   });
 
-  message += "============================\n";
-  message += "*TOTAL: " + formatRupiah(total) + "*\n";
-  message += "\nMohon konfirmasi pesanan saya.";
+  message+="============================\n";
+  message+="*TOTAL: "+formatRupiah(total)+"*\n";
 
-  const url =
-    "https://wa.me/" + INJECT_WHATSAPP +
-    "?text=" + encodeURIComponent(message);
+  if(request){
+    message+="\n*CATATAN / REQUEST*\n"+request+"\n";
+  }
 
+  message+="\nMohon konfirmasi pesanan saya. Terima kasih.";
+
+  const url="https://wa.me/"+INJECT_WHATSAPP+"?text="+encodeURIComponent(message);
   window.open(url,"_blank");
-
 });
 
-/* =========================
-   CEK PESANAN
-========================= */
+/* =====================================
+   TUTUP MODAL KETIKA KLIK LUAR
+===================================== */
+document.getElementById("checkoutModal").addEventListener("click",function(event){
+  if(event.target===this)closeCheckout();
+});
 
-function addResultLine(container,label,value) {
-
-  const row = document.createElement("p");
-  row.style.marginBottom = "10px";
-
-  const strong = document.createElement("strong");
-  strong.textContent = label + ": ";
-
-  const span = document.createElement("span");
-  span.textContent = value || "-";
-
-  row.append(strong,span);
-  container.appendChild(row);
-}
-
-async function checkLastOrder() {
-
-  const orderId =
-    document.getElementById("orderIdInput").value.trim();
-
-  const result = document.getElementById("orderResult");
-
-  if (!orderId) {
-    alert("Masukkan ID pesanan terlebih dahulu.");
-    return;
-  }
-
-  result.textContent = "Memeriksa pesanan...";
-
-  try {
-
-    const token = sessionStorage.getItem("hakim_access_token");
-
-    const response = await fetch(
-      "/api/orders/" + encodeURIComponent(orderId),
-      {
-        headers: token ? {
-          "Authorization":"Bearer " + token
-        } : {}
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Pesanan tidak ditemukan.");
-    }
-
-    renderOrderResult(data.order || data,result);
-
-  } catch(error) {
-
-    result.textContent =
-      error.message || "Gagal memeriksa pesanan.";
-
-  }
-
-}
-
-/* =========================
-   INFORMASI PESANAN
-========================= */
-
-function renderOrderResult(order,result) {
-
-  result.replaceChildren();
-
-  const heading = document.createElement("h3");
-  heading.textContent = "INFORMASI PESANAN";
-  heading.style.color = "var(--gold-light)";
-  heading.style.marginBottom = "20px";
-
-  result.appendChild(heading);
-
-  const status = String(order.status || "").toLowerCase();
-
-  addResultLine(
-    result,
-    "ID Pesanan",
-    order.id || order.order_id || "-"
-  );
-
-  addResultLine(
-    result,
-    "Status",
-    order.status || "-"
-  );
-
-  addResultLine(
-    result,
-    "Produk",
-    order.product_name || order.product || "-"
-  );
-
-  addResultLine(
-    result,
-    "Total Pembayaran",
-    order.total ? formatRupiah(order.total) : "-"
-  );
-
-  const isPaid = [
-    "paid",
-    "processing",
-    "completed"
-  ].includes(status);
-
-  if (isPaid) {
-
-    addResultLine(
-      result,
-      "Email Akun",
-      order.account_email || order.email || "-"
-    );
-
-    addResultLine(
-      result,
-      "Password Akun",
-      order.account_password || order.password || "-"
-    );
-
-  }
-
-}
-
-/* =========================
-   PEMUATAN AWAL
-========================= */
-
+/* =====================================
+   INISIALISASI
+===================================== */
+renderInjectProducts();
 renderInjectCart();
 
 console.log("HAKIM STORE berhasil dimuat.");
-
 </script>
 
 </body>
 </html>
-
-
