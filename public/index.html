@@ -683,9 +683,12 @@ document.getElementById("injectCheckoutForm").addEventListener("submit",function
 
   message+="\nMohon konfirmasi pesanan saya. Terima kasih.";
 
-  const url="https://wa.me/"+INJECT_WHATSAPP+"?text="+encodeURIComponent(message);
-  window.open(url,"_blank");
-});
+  const url = "https://api.whatsapp.com/send?phone=" 
+  + INJECT_WHATSAPP 
+  + "&text=" 
+  + encodeURIComponent(message);
+
+window.location.href = url;
 /* =====================================
    TUTUP MODAL KETIKA KLIK LUAR
 ===================================== */
