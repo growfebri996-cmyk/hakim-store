@@ -549,7 +549,10 @@ function logout(){
   document.getElementById("token").value = "";
   document.getElementById("msg").textContent = "";
 }
-window.loginAdmin = loginAdmin;
+window.loginAdmin = function(){
+  alert("FUNGSI LOGIN BERHASIL DIPANGGIL");
+  loginAdmin();
+};
 </script>
 </body>
 </html>`;
