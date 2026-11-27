@@ -182,7 +182,7 @@ small{color:#aaa}
 
 </div>
 </main>
-
+alert("JAVASCRIPT ADMIN DIMUAT");
 <script>
 var adminToken = "";
 var products = {};
