@@ -1,6 +1,16 @@
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+window.addEventListener("error", function(e){
+  alert(
+    "ERROR JAVASCRIPT:\n" +
+    e.message +
+    "\nBaris: " +
+    e.lineno
+  );
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HAKIM STORE ADMIN</title>
