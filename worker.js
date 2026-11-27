@@ -215,8 +215,9 @@ async function api(path, options){
 }
 
 async function loginAdmin(){
-  adminToken = document.getElementById("token").value.trim();
+  alert("LOGIN ADMIN TERPANGGIL");
 
+  adminToken = document.getElementById("token").value.trim();
 if(!adminToken){
   document.getElementById("msg").textContent = "Masukkan token admin!";
   return;
