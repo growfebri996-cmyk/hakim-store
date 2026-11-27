@@ -226,7 +226,7 @@ if(!adminToken){
 document.getElementById("msg").textContent = "Memeriksa token...";
 
   try{
-    await api("/api/admin/dashboard");
+    var d = await api("/api/admin/dashboard");
 
     var p = await fetch("/api/products");
 
@@ -549,6 +549,7 @@ function logout(){
   document.getElementById("token").value = "";
   document.getElementById("msg").textContent = "";
 }
+window.loginAdmin = loginAdmin;
 </script>
 </body>
 </html>`;
