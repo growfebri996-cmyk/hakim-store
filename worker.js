@@ -640,6 +640,270 @@ if (
       : "Streamer berhasil dinonaktifkan"
   });
 }
+
+      
+// =====================================
+// STREAMER INVENTORY & CLAIM API
+// =====================================
+
+
+// STREAMER: LIHAT STOK TERSEDIA
+if (
+  url.pathname === "/api/streamer/stock" &&
+  request.method === "GET"
+) {
+  const streamer = await getStreamerSession(
+    request,
+    env
+  );
+
+  if (!streamer) {
+    return respond({
+      success: false,
+      message: "Silakan login kembali"
+    }, 401);
+  }
+
+  const result = await env.DB.prepare(`
+    SELECT
+      id,
+      product_id,
+      account_email,
+      created_at
+    FROM inventory
+    WHERE status = 'available'
+    ORDER BY id ASC
+  `).all();
+
+  return respond({
+    success: true,
+    stock: result.results || []
+  });
+}
+
+
+// STREAMER: KLAIM AKUN
+const streamerClaimMatch =
+  url.pathname.match(
+    /^\/api\/streamer\/claim\/(\d+)$/
+  );
+
+if (
+  streamerClaimMatch &&
+  request.method === "POST"
+) {
+  const streamer = await getStreamerSession(
+    request,
+    env
+  );
+
+  if (!streamer) {
+    return respond({
+      success: false,
+      message: "Silakan login kembali"
+    }, 401);
+  }
+
+  const inventoryId = Number(
+    streamerClaimMatch[1]
+  );
+
+  if (
+    !Number.isSafeInteger(inventoryId) ||
+    inventoryId <= 0
+  ) {
+    return respond({
+      success: false,
+      message: "ID akun tidak valid"
+    }, 400);
+  }
+
+  // Ambil stok hanya jika masih tersedia.
+  const stock = await env.DB.prepare(`
+    SELECT
+      id,
+      product_id,
+      account_email,
+      password_cipher,
+      password_iv,
+      status
+    FROM inventory
+    WHERE id = ?
+      AND status = 'available'
+    LIMIT 1
+  `).bind(inventoryId).first();
+
+  if (!stock) {
+    return respond({
+      success: false,
+      message: "Akun sudah diklaim atau tidak tersedia"
+    }, 409);
+  }
+
+  // Kunci stok dengan perubahan status bersyarat.
+  const update = await env.DB.prepare(`
+    UPDATE inventory
+    SET status = 'claimed',
+        order_id = NULL
+    WHERE id = ?
+      AND status = 'available'
+  `).bind(inventoryId).run();
+
+  if (
+    !update.meta ||
+    update.meta.changes !== 1
+  ) {
+    return respond({
+      success: false,
+      message: "Akun sudah diambil streamer lain atau pembeli"
+    }, 409);
+  }
+
+  // Catat klaim streamer.
+  try {
+    await env.DB.prepare(`
+      INSERT INTO streamer_claims
+      (streamer_id, inventory_id, status, claimed_at)
+      VALUES (?, ?, 'claimed', CURRENT_TIMESTAMP)
+    `).bind(
+      streamer.id,
+      inventoryId
+    ).run();
+
+  } catch (error) {
+    console.error(
+      "STREAMER CLAIM INSERT ERROR:",
+      error
+    );
+
+    // Jangan kembalikan stok jika ternyata
+    // sudah ada klaim aktif yang tercatat.
+    const existingClaim = await env.DB.prepare(`
+      SELECT id
+      FROM streamer_claims
+      WHERE inventory_id = ?
+        AND status = 'claimed'
+      LIMIT 1
+    `).bind(inventoryId).first();
+
+    if (!existingClaim) {
+      await env.DB.prepare(`
+        UPDATE inventory
+        SET status = 'available'
+        WHERE id = ?
+          AND status = 'claimed'
+      `).bind(inventoryId).run();
+    }
+
+    return respond({
+      success: false,
+      message: "Gagal menyimpan klaim akun"
+    }, 500);
+  }
+
+  // Dekripsi password setelah klaim berhasil.
+  let password;
+
+  try {
+    password = await decryptInventoryPassword(
+      stock,
+      env
+    );
+  } catch (error) {
+    console.error(
+      "STREAMER PASSWORD DECRYPT ERROR:",
+      error
+    );
+
+    return respond({
+      success: false,
+      message: "Klaim tersimpan, tetapi password gagal dibuka. Hubungi admin."
+    }, 500);
+  }
+
+  return respond({
+    success: true,
+    message: "Akun berhasil diklaim",
+    account: {
+      id: stock.id,
+      product_id: stock.product_id,
+      account_email: stock.account_email,
+      password
+    }
+  });
+}
+
+
+// STREAMER: RIWAYAT KLAIM SENDIRI
+if (
+  url.pathname === "/api/streamer/claims" &&
+  request.method === "GET"
+) {
+  const streamer = await getStreamerSession(
+    request,
+    env
+  );
+
+  if (!streamer) {
+    return respond({
+      success: false,
+      message: "Silakan login kembali"
+    }, 401);
+  }
+
+  const result = await env.DB.prepare(`
+    SELECT
+      c.id AS claim_id,
+      c.inventory_id,
+      c.status AS claim_status,
+      c.claimed_at,
+      c.returned_at,
+      i.product_id,
+      i.account_email,
+      i.password_cipher,
+      i.password_iv,
+      i.status AS inventory_status
+    FROM streamer_claims c
+    JOIN inventory i
+      ON i.id = c.inventory_id
+    WHERE c.streamer_id = ?
+    ORDER BY c.id DESC
+  `).bind(streamer.id).all();
+
+  const claims = [];
+
+  for (const item of result.results || []) {
+    const claim = {
+      claim_id: item.claim_id,
+      inventory_id: item.inventory_id,
+      product_id: item.product_id,
+      account_email: item.account_email,
+      status: item.claim_status
+      claimed_at: item.claimed_at,
+      returned_at: item.returned_at
+    };
+
+    // Password hanya ditampilkan untuk klaim aktif
+    // yang masih berstatus claimed di inventory.
+    if (
+      item.claim_status === "claimed" &&
+      item.inventory_status === "claimed"
+    ) {
+      claim.password = await decryptInventoryPassword(
+        item,
+        env
+      );
+    }
+
+    claims.push(claim);
+  }
+
+  return respond({
+    success: true,
+    claims
+  });
+}
+      
       
 
       // =========================
@@ -1958,6 +2222,43 @@ async function getStreamerSession(request, env) {
     username: session.username
   };
 }
+
+
+// =====================================
+// DECRYPT INVENTORY PASSWORD
+// =====================================
+
+async function decryptInventoryPassword(stock, env) {
+  const keyBytes = hexToBytes(
+    env.ACCOUNT_ENCRYPTION_KEY
+  );
+
+  if (keyBytes.length !== 32) {
+    throw new Error(
+      "ACCOUNT_ENCRYPTION_KEY tidak valid"
+    );
+  }
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    "AES-GCM",
+    false,
+    ["decrypt"]
+  );
+
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: hexToBytes(stock.password_iv)
+    },
+    key,
+    hexToBytes(stock.password_cipher)
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
 
 
 // =========================
