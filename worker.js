@@ -429,9 +429,9 @@ async function loadStreamers(){
           "<td>" + esc(s.username) + "</td>" +
           "<td>" + esc(s.status) + "</td>" +
           "<td>" + esc(s.active_claims) + "</td>" +
-          "<td><button onclick=\"changeStreamerStatus(" +
-          Number(s.id) + ",'" + nextStatus +
-          "')\">" + action + "</button></td>" +
+          '<td><button onclick="changeStreamerStatus(' +
+Number(s.id) + ',\'' + nextStatus +
+'\')">' + action + '</button></td>' +
           "</tr>";
       }).join("") ||
       "<tr><td colspan='5'>Belum ada streamer</td></tr>";
