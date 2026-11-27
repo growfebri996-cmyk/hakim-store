@@ -41,7 +41,7 @@ small{color:#aaa}
 <div class="card" id="login">
 <h3>Login Admin</h3>
 <input id="token" type="password" placeholder="Masukkan ADMIN_TOKEN">
-<button onclick="alert(typeof loginAdmin)">LOGIN</button>
+<button onclick="loginAdmin()">LOGIN</button>
 <div id="msg"></div>
 </div>
 
@@ -225,7 +225,6 @@ async function api(path, options){
 }
 
 async function loginAdmin(){
-alert("FUNGSI LOGIN BERJALAN");
   adminToken = document.getElementById("token").value.trim();
   document.getElementById("msg").textContent = "Memeriksa token...";
 
