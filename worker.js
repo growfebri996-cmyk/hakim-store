@@ -402,6 +402,7 @@ small{color:#aaa}
 <div id="stockmsg"></div>
 </div>
 
+
 <h3>Inventaris</h3>
 <div class="card">
 <select id="stockfilter" onchange="loadStock()">
@@ -409,12 +410,23 @@ small{color:#aaa}
 <option value="available">Available</option>
 <option value="reserved">Reserved</option>
 <option value="sold">Sold</option>
+<option value="claimed">Diklaim Streamer</option>
 </select>
+
 <div class="wrap"><table>
-<thead><tr><th>ID</th><th>Produk</th><th>Akun</th><th>Status</th><th>Order</th></tr></thead>
+<thead>
+<tr>
+<th>ID</th>
+<th>Produk</th>
+<th>Akun</th>
+<th>Status</th>
+<th>Order</th>
+</tr>
+</thead>
 <tbody id="stocks"></tbody>
 </table></div>
 </div>
+
 
 <h3>Pesanan</h3>
 <div class="card">
@@ -669,6 +681,7 @@ async function addStock(){
   }
 }
 
+
 async function loadStock(){
   try{
     var status = document.getElementById("stockfilter").value;
@@ -676,10 +689,21 @@ async function loadStock(){
 
     document.getElementById("stocks").innerHTML =
       (d.inventory || []).map(function(x){
+        var statusText = x.status === "claimed"
+          ? "Diklaim Streamer"
+          : x.status;
+
+        var accountInfo = esc(x.account_email);
+
+        if(x.streamer_username){
+          accountInfo += "<br><small>Streamer: " +
+            esc(x.streamer_username) + "</small>";
+        }
+
         return "<tr><td>" + esc(x.id) +
           "</td><td>" + esc(products[x.product_id] ? products[x.product_id].name : x.product_id) +
-          "</td><td>" + esc(x.account_email) +
-          "</td><td>" + esc(x.status) +
+          "</td><td>" + accountInfo +
+          "</td><td>" + esc(statusText) +
           "</td><td>" + esc(x.order_id || "-") +
           "</td></tr>";
       }).join("");
@@ -688,6 +712,7 @@ async function loadStock(){
       "<tr><td colspan='5'>" + esc(e.message) + "</td></tr>";
   }
 }
+
 
 async function loadOrders(){
   try{
@@ -1803,9 +1828,9 @@ if (url.pathname === "/api/admin/inventory" && request.method === "GET") {
 
   const bindings = [];
 
-  if (["available", "reserved", "sold"].includes(status)) {
-    query += ` AND status = ?`;
-    bindings.push(status);
+  if (["available", "reserved", "sold", "claimed"].includes(status)) {
+  query += ` AND i.status = ?`;
+  bindings.push(status);
   }
 
   if (productId) {
