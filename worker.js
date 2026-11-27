@@ -1803,7 +1803,8 @@ if (url.pathname === "/api/admin/dashboard" && request.method === "GET") {
 }
 
 
-// LIST INVENTORY
+
+ // LIST INVENTORY
 if (url.pathname === "/api/admin/inventory" && request.method === "GET") {
   if (!isAdmin(request, env)) {
     return respond({
@@ -1817,28 +1818,35 @@ if (url.pathname === "/api/admin/inventory" && request.method === "GET") {
 
   let query = `
     SELECT
-      id,
-      product_id,
-      account_email,
-      status,
-      order_id
-    FROM inventory
+      i.id,
+      i.product_id,
+      i.account_email,
+      i.status,
+      i.order_id,
+      s.username AS streamer_username,
+      sc.claimed_at AS claimed_at
+    FROM inventory i
+    LEFT JOIN streamer_claims sc
+      ON sc.inventory_id = i.id
+      AND sc.status = 'claimed'
+    LEFT JOIN streamers s
+      ON s.id = sc.streamer_id
     WHERE 1 = 1
   `;
 
   const bindings = [];
 
   if (["available", "reserved", "sold", "claimed"].includes(status)) {
-  query += ` AND i.status = ?`;
-  bindings.push(status);
+    query += ` AND i.status = ?`;
+    bindings.push(status);
   }
 
   if (productId) {
-    query += ` AND product_id = ?`;
+    query += ` AND i.product_id = ?`;
     bindings.push(productId);
   }
 
-  query += ` ORDER BY rowid DESC LIMIT 100`;
+  query += ` ORDER BY i.rowid DESC LIMIT 100`;
 
   let statement = env.DB.prepare(query);
 
