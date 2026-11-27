@@ -85,6 +85,101 @@ small{color:#aaa}
 <tbody id="orders"></tbody>
 </table></div>
 </div>
+
+<!-- ================================= -->
+<!-- MANAJEMEN STREAMER -->
+<!-- ================================= -->
+
+<h3>Manajemen Streamer</h3>
+
+<div class="card">
+  <h4>Tambah Akun Streamer</h4>
+
+  <input
+    id="newStreamerUsername"
+    placeholder="Username streamer"
+  >
+
+  <input
+    id="newStreamerPassword"
+    type="password"
+    placeholder="Password minimal 10 karakter"
+  >
+
+  <button onclick="createStreamer()">
+    BUAT AKUN STREAMER
+  </button>
+
+  <div id="streamerMsg"></div>
+</div>
+
+<div class="card">
+  <h4>Daftar Streamer</h4>
+
+  <button onclick="loadStreamers()">
+    REFRESH STREAMER
+  </button>
+
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Status</th>
+          <th>Klaim Aktif</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="streamers">
+        <tr>
+          <td colspan="5">Belum dimuat</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h3>Riwayat Klaim Streamer</h3>
+
+<div class="card">
+  <select
+    id="claimFilter"
+    onchange="loadStreamerClaims()"
+  >
+    <option value="all">Semua klaim</option>
+    <option value="claimed">Masih diklaim</option>
+    <option value="returned">Sudah dikembalikan</option>
+  </select>
+
+  <button onclick="loadStreamerClaims()">
+    REFRESH RIWAYAT
+  </button>
+
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID Klaim</th>
+          <th>Streamer</th>
+          <th>ID Akun</th>
+          <th>Email Akun</th>
+          <th>Status</th>
+          <th>Tanggal</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="streamerClaims">
+        <tr>
+          <td colspan="7">Belum dimuat</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="claimMsg"></div>
+</div>
+
 </div>
 </main>
 
@@ -144,7 +239,9 @@ products = productData.products || {};
     });
 
     renderStats(d);
-    await refreshAll();
+await refreshAll();
+await loadStreamers();
+await loadStreamerClaims();
   }catch(e){
     adminToken = "";
     document.getElementById("msg").textContent = e.message;
@@ -172,6 +269,8 @@ async function refreshAll(){
     renderStats(d);
     await loadStock();
     await loadOrders();
+    await loadStreamers();
+await loadStreamerClaims();
   }catch(e){
     alert(e.message);
   }
@@ -256,6 +355,180 @@ async function loadOrders(){
       "<tr><td colspan='7'>" + esc(e.message) + "</td></tr>";
   }
 }
+
+
+// =====================================
+// ADMIN STREAMER MANAGEMENT
+// =====================================
+
+// MEMBUAT STREAMER
+async function createStreamer(){
+  const username =
+    document.getElementById("newStreamerUsername").value.trim();
+
+  const password =
+    document.getElementById("newStreamerPassword").value;
+
+  const msg =
+    document.getElementById("streamerMsg");
+
+  if(!username || !password){
+    msg.textContent = "Username dan password wajib diisi";
+    return;
+  }
+
+  if(!confirm("Buat akun streamer ini?")) return;
+
+  try{
+    const d = await api("/api/admin/streamers",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username,password})
+    });
+
+    msg.textContent = d.message;
+
+    document.getElementById("newStreamerUsername").value = "";
+    document.getElementById("newStreamerPassword").value = "";
+
+    await loadStreamers();
+
+  }catch(e){
+    msg.textContent = e.message;
+  }
+}
+
+
+// MEMUAT DAFTAR STREAMER
+async function loadStreamers(){
+  try{
+    const d = await api("/api/admin/streamers");
+
+    document.getElementById("streamers").innerHTML =
+      (d.streamers || []).map(function(s){
+        const nextStatus =
+          s.status === "active" ? "suspended" : "active";
+
+        const action =
+          s.status === "active" ? "SUSPEND" : "AKTIFKAN";
+
+        return "<tr>" +
+          "<td>" + esc(s.id) + "</td>" +
+          "<td>" + esc(s.username) + "</td>" +
+          "<td>" + esc(s.status) + "</td>" +
+          "<td>" + esc(s.active_claims) + "</td>" +
+          "<td><button onclick=\"changeStreamerStatus(" +
+          Number(s.id) + ",'" + nextStatus +
+          "')\">" + action + "</button></td>" +
+          "</tr>";
+      }).join("") ||
+      "<tr><td colspan='5'>Belum ada streamer</td></tr>";
+
+  }catch(e){
+    document.getElementById("streamers").innerHTML =
+      "<tr><td colspan='5'>" + esc(e.message) + "</td></tr>";
+  }
+}
+
+
+// AKTIFKAN / SUSPEND STREAMER
+async function changeStreamerStatus(id,status){
+  const action =
+    status === "active" ? "mengaktifkan" : "menonaktifkan";
+
+  if(!confirm("Yakin ingin " + action + " streamer ini?")){
+    return;
+  }
+
+  try{
+    const d = await api(
+      "/api/admin/streamers/" + id + "/status",
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({status})
+      }
+    );
+
+    alert(d.message);
+    await loadStreamers();
+
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+
+// MEMUAT RIWAYAT KLAIM
+async function loadStreamerClaims(){
+  try{
+    const status =
+      document.getElementById("claimFilter").value;
+
+    const d = await api(
+      "/api/admin/streamer-claims?status=" +
+      encodeURIComponent(status)
+    );
+
+    document.getElementById("streamerClaims").innerHTML =
+      (d.claims || []).map(function(c){
+        let action = "-";
+
+        if(c.claim_status === "claimed"){
+          action =
+            "<button onclick=\"returnStreamerClaim(" +
+            Number(c.claim_id) +
+            ")\">KEMBALIKAN</button>";
+        }
+
+        return "<tr>" +
+          "<td>" + esc(c.claim_id) + "</td>" +
+          "<td>" + esc(c.username) + "</td>" +
+          "<td>" + esc(c.inventory_id) + "</td>" +
+          "<td>" + esc(c.account_email) + "</td>" +
+          "<td>" + esc(c.claim_status) + "</td>" +
+          "<td>" + esc(c.claimed_at) + "</td>" +
+          "<td>" + action + "</td>" +
+          "</tr>";
+      }).join("") ||
+      "<tr><td colspan='7'>Belum ada riwayat klaim</td></tr>";
+
+  }catch(e){
+    document.getElementById("streamerClaims").innerHTML =
+      "<tr><td colspan='7'>" + esc(e.message) + "</td></tr>";
+  }
+}
+
+
+// ADMIN MENGEMBALIKAN AKUN
+async function returnStreamerClaim(id){
+  if(!confirm(
+    "Kembalikan akun ini ke stok penjualan?"
+  )){
+    return;
+  }
+
+  try{
+    const d = await api(
+      "/api/admin/streamer-claims/" + id + "/return",
+      {
+        method:"POST"
+      }
+    );
+
+    document.getElementById("claimMsg").textContent =
+      d.message;
+
+    await loadStreamerClaims();
+    await loadStreamers();
+    await refreshAll();
+
+  }catch(e){
+    document.getElementById("claimMsg").textContent =
+      e.message;
+  }
+}
+
 
 function logout(){
   adminToken = "";
@@ -903,7 +1176,198 @@ if (
     claims
   });
 }
-      
+
+    
+// =====================================
+// ADMIN: STREAMER CLAIM MANAGEMENT
+// =====================================
+
+
+// ADMIN: MELIHAT SEMUA RIWAYAT KLAIM
+if (
+  url.pathname === "/api/admin/streamer-claims" &&
+  request.method === "GET"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
+
+  const status = url.searchParams.get("status") || "all";
+
+  let query = `
+    SELECT
+      c.id AS claim_id,
+      c.streamer_id,
+      s.username,
+      c.inventory_id,
+      c.status AS claim_status,
+      c.claimed_at,
+      c.returned_at,
+      c.returned_by,
+      i.product_id,
+      i.account_email,
+      i.status AS inventory_status
+    FROM streamer_claims c
+    JOIN streamers s
+      ON s.id = c.streamer_id
+    JOIN inventory i
+      ON i.id = c.inventory_id
+  `;
+
+  if (["claimed", "returned"].includes(status)) {
+    query += ` WHERE c.status = ?`;
+  }
+
+  query += ` ORDER BY c.id DESC LIMIT 500`;
+
+  const result = ["claimed", "returned"].includes(status)
+    ? await env.DB.prepare(query).bind(status).all()
+    : await env.DB.prepare(query).all();
+
+  return respond({
+    success: true,
+    claims: result.results || []
+  });
+}
+
+
+// ADMIN: MENGEMBALIKAN AKUN KE STOK
+const returnClaimMatch =
+  url.pathname.match(
+    /^\/api\/admin\/streamer-claims\/(\d+)\/return$/
+  );
+
+if (
+  returnClaimMatch &&
+  request.method === "POST"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
+
+  const claimId = Number(returnClaimMatch[1]);
+
+  if (
+    !Number.isSafeInteger(claimId) ||
+    claimId <= 0
+  ) {
+    return respond({
+      success: false,
+      message: "ID klaim tidak valid"
+    }, 400);
+  }
+
+  const claim = await env.DB.prepare(`
+    SELECT
+      id,
+      inventory_id,
+      status
+    FROM streamer_claims
+    WHERE id = ?
+    LIMIT 1
+  `).bind(claimId).first();
+
+  if (!claim || claim.status !== "claimed") {
+    return respond({
+      success: false,
+      message: "Klaim tidak ditemukan atau sudah dikembalikan"
+    }, 404);
+  }
+
+  // Pastikan stok masih berstatus claimed
+  const stockUpdate = await env.DB.prepare(`
+    UPDATE inventory
+    SET status = 'available',
+        order_id = NULL
+    WHERE id = ?
+      AND status = 'claimed'
+      AND EXISTS (
+        SELECT 1
+        FROM streamer_claims
+        WHERE id = ?
+          AND inventory_id = ?
+          AND status = 'claimed'
+      )
+  `).bind(
+    claim.inventory_id,
+    claimId,
+    claim.inventory_id
+  ).run();
+
+  if (
+    !stockUpdate.meta ||
+    stockUpdate.meta.changes !== 1
+  ) {
+    return respond({
+      success: false,
+      message: "Stok tidak dapat dikembalikan. Periksa status akun."
+    }, 409);
+  }
+
+  // Tandai riwayat klaim sebagai returned
+  try {
+    const claimUpdate = await env.DB.prepare(`
+      UPDATE streamer_claims
+      SET status = 'returned',
+          returned_at = CURRENT_TIMESTAMP,
+          returned_by = 'admin'
+      WHERE id = ?
+        AND status = 'claimed'
+        AND inventory_id = ?
+    `).bind(
+      claimId,
+      claim.inventory_id
+    ).run();
+
+    if (
+      !claimUpdate.meta ||
+      claimUpdate.meta.changes !== 1
+    ) {
+      throw new Error("Gagal memperbarui riwayat klaim");
+    }
+
+  } catch (error) {
+    console.error(
+      "ADMIN RETURN CLAIM ERROR:",
+      error
+    );
+
+    // Kembalikan status stok jika pencatatan gagal
+    await env.DB.prepare(`
+      UPDATE inventory
+      SET status = 'claimed'
+      WHERE id = ?
+        AND status = 'available'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM streamer_claims
+          WHERE inventory_id = ?
+            AND status = 'claimed'
+        )
+    `).bind(
+      claim.inventory_id,
+      claim.inventory_id
+    ).run();
+
+    return respond({
+      success: false,
+      message: "Pengembalian gagal dicatat"
+    }, 500);
+  }
+
+  return respond({
+    success: true,
+    message: "Akun berhasil dikembalikan ke stok tersedia",
+    inventory_id: claim.inventory_id
+  });
+}
+    
       
 
       // =========================
