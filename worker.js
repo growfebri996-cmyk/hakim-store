@@ -31,7 +31,7 @@ small{color:#aaa}
 <div class="card" id="login">
 <h3>Login Admin</h3>
 <input id="token" type="password" placeholder="Masukkan ADMIN_TOKEN">
-<button onclick="loginAdmin()">LOGIN</button>
+<button type="button" onclick="loginAdmin()">LOGIN</button>
 <div id="msg"></div>
 </div>
 
