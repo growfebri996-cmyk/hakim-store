@@ -488,9 +488,9 @@ async function loadStreamerClaims(){
 
         if(c.claim_status === "claimed"){
           action =
-            "<button onclick=\"returnStreamerClaim(" +
-            Number(c.claim_id) +
-            ")\">KEMBALIKAN</button>";
+  "<button onclick='returnStreamerClaim(" +
+  Number(c.claim_id) +
+  ")'>KEMBALIKAN</button>";
         }
 
         return "<tr>" +
