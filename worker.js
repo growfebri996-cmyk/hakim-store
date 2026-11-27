@@ -348,6 +348,300 @@ export default {
         });
       }
 
+      
+// =====================================
+// STREAMER AUTHENTICATION API
+// =====================================
+
+// STREAMER LOGIN
+if (
+  url.pathname === "/api/streamer/login" &&
+  request.method === "POST"
+) {
+  const body = await request.json();
+
+  const username =
+    typeof body.username === "string"
+      ? body.username.trim().toLowerCase()
+      : "";
+
+  const password =
+    typeof body.password === "string"
+      ? body.password
+      : "";
+
+  if (!username || !password) {
+    return respond({
+      success: false,
+      message: "Username dan password wajib diisi"
+    }, 400);
+  }
+
+  const streamer = await env.DB.prepare(`
+    SELECT id, username, password_hash, status
+    FROM streamers
+    WHERE username = ?
+    LIMIT 1
+  `).bind(username).first();
+
+  if (
+    !streamer ||
+    streamer.status !== "active" ||
+    !(await verifyStreamerPassword(
+      password,
+      streamer.password_hash
+    ))
+  ) {
+    return respond({
+      success: false,
+      message: "Username atau password salah"
+    }, 401);
+  }
+
+  const sessionToken = bytesToHex(
+    crypto.getRandomValues(new Uint8Array(32))
+  );
+
+  const tokenHash = await sha256(sessionToken);
+
+  const expiresAt = new Date(
+    Date.now() + 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  await env.DB.prepare(`
+    INSERT INTO streamer_sessions
+    (streamer_id, token_hash, expires_at)
+    VALUES (?, ?, ?)
+  `).bind(
+    streamer.id,
+    tokenHash,
+    expiresAt
+  ).run();
+
+  return respond({
+    success: true,
+    message: "Login berhasil",
+    token: sessionToken,
+    streamer: {
+      id: streamer.id,
+      username: streamer.username
+    },
+    expires_at: expiresAt
+  });
+}
+
+
+// STREAMER SESSION CHECK
+if (
+  url.pathname === "/api/streamer/me" &&
+  request.method === "GET"
+) {
+  const streamer = await getStreamerSession(
+    request,
+    env
+  );
+
+  if (!streamer) {
+    return respond({
+      success: false,
+      message: "Sesi login tidak valid atau sudah berakhir"
+    }, 401);
+  }
+
+  return respond({
+    success: true,
+    streamer: {
+      id: streamer.id,
+      username: streamer.username
+    }
+  });
+}
+
+
+// STREAMER LOGOUT
+if (
+  url.pathname === "/api/streamer/logout" &&
+  request.method === "POST"
+) {
+  const token = getBearerToken(request);
+
+  if (token) {
+    await env.DB.prepare(`
+      DELETE FROM streamer_sessions
+      WHERE token_hash = ?
+    `).bind(await sha256(token)).run();
+  }
+
+  return respond({
+    success: true,
+    message: "Logout berhasil"
+  });
+}
+
+
+// ADMIN: LIST STREAMERS
+if (
+  url.pathname === "/api/admin/streamers" &&
+  request.method === "GET"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
+
+  const result = await env.DB.prepare(`
+    SELECT
+      s.id,
+      s.username,
+      s.status,
+      s.created_at,
+      COUNT(
+        CASE WHEN c.status = 'claimed' THEN 1 END
+      ) AS active_claims
+    FROM streamers s
+    LEFT JOIN streamer_claims c
+      ON c.streamer_id = s.id
+    GROUP BY s.id
+    ORDER BY s.id DESC
+  `).all();
+
+  return respond({
+    success: true,
+    streamers: result.results || []
+  });
+}
+
+
+// ADMIN: CREATE STREAMER
+if (
+  url.pathname === "/api/admin/streamers" &&
+  request.method === "POST"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
+
+  const body = await request.json();
+
+  const username =
+    typeof body.username === "string"
+      ? body.username.trim().toLowerCase()
+      : "";
+
+  const password =
+    typeof body.password === "string"
+      ? body.password
+      : "";
+
+  if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+    return respond({
+      success: false,
+      message: "Username harus 3-30 karakter, hanya huruf, angka, dan underscore"
+    }, 400);
+  }
+
+  if (password.length < 10 || password.length > 128) {
+    return respond({
+      success: false,
+      message: "Password harus 10-128 karakter"
+    }, 400);
+  }
+
+  const existing = await env.DB.prepare(`
+    SELECT id FROM streamers WHERE username = ?
+  `).bind(username).first();
+
+  if (existing) {
+    return respond({
+      success: false,
+      message: "Username sudah digunakan"
+    }, 409);
+  }
+
+  const passwordHash = await hashStreamerPassword(
+    password
+  );
+
+  await env.DB.prepare(`
+    INSERT INTO streamers
+    (username, password_hash, status)
+    VALUES (?, ?, 'active')
+  `).bind(
+    username,
+    passwordHash
+  ).run();
+
+  return respond({
+    success: true,
+    message: "Akun streamer berhasil dibuat",
+    username
+  });
+}
+
+
+// ADMIN: CHANGE STREAMER STATUS
+const streamerStatusMatch =
+  url.pathname.match(
+    /^\/api\/admin\/streamers\/(\d+)\/status$/
+  );
+
+if (
+  streamerStatusMatch &&
+  request.method === "POST"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
+
+  const streamerId = Number(streamerStatusMatch[1]);
+  const body = await request.json();
+  const status = body.status;
+
+  if (!["active", "suspended"].includes(status)) {
+    return respond({
+      success: false,
+      message: "Status tidak valid"
+    }, 400);
+  }
+
+  const result = await env.DB.prepare(`
+    UPDATE streamers
+    SET status = ?
+    WHERE id = ?
+  `).bind(status, streamerId).run();
+
+  if (!result.meta || result.meta.changes !== 1) {
+    return respond({
+      success: false,
+      message: "Streamer tidak ditemukan"
+    }, 404);
+  }
+
+  // Hapus semua sesi saat streamer dinonaktifkan
+  if (status === "suspended") {
+    await env.DB.prepare(`
+      DELETE FROM streamer_sessions
+      WHERE streamer_id = ?
+    `).bind(streamerId).run();
+  }
+
+  return respond({
+    success: true,
+    message: status === "active"
+      ? "Streamer berhasil diaktifkan"
+      : "Streamer berhasil dinonaktifkan"
+  });
+}
+      
+
       // =========================
 // ADMIN DASHBOARD API
 // =========================
@@ -1508,6 +1802,163 @@ function isAdmin(request, env) {
   return token.trim() ===
     `Bearer ${env.ADMIN_TOKEN.trim()}`;
 }
+
+
+// =====================================
+// STREAMER SECURITY HELPERS
+// =====================================
+
+function getBearerToken(request) {
+  const header =
+    request.headers.get("Authorization") || "";
+
+  return header.startsWith("Bearer ")
+    ? header.slice(7).trim()
+    : "";
+}
+
+
+// HASH PASSWORD STREAMER
+async function hashStreamerPassword(password) {
+  const iterations = 210000;
+
+  const salt = crypto.getRandomValues(
+    new Uint8Array(16)
+  );
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+
+  const derived = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations,
+      hash: "SHA-256"
+    },
+    key,
+    256
+  );
+
+  return [
+    "pbkdf2",
+    iterations,
+    bytesToHex(salt),
+    bytesToHex(new Uint8Array(derived))
+  ].join("$");
+}
+
+
+// VERIFIKASI PASSWORD STREAMER
+async function verifyStreamerPassword(
+  password,
+  storedHash
+) {
+  try {
+    const parts = storedHash.split("$");
+
+    if (
+      parts.length !== 4 ||
+      parts[0] !== "pbkdf2"
+    ) {
+      return false;
+    }
+
+    const iterations = Number(parts[1]);
+    const salt = hexToBytes(parts[2]);
+    const expected = parts[3];
+
+    if (
+      !Number.isInteger(iterations) ||
+      iterations < 100000 ||
+      iterations > 500000 ||
+      salt.length !== 16 ||
+      !/^[0-9a-f]{64}$/i.test(expected)
+    ) {
+      return false;
+    }
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+
+    const derived = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt,
+        iterations,
+        hash: "SHA-256"
+      },
+      key,
+      256
+    );
+
+    const actual = bytesToHex(
+      new Uint8Array(derived)
+    );
+
+    return constantTimeEqual(
+      actual,
+      expected.toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}
+
+
+// VALIDASI SESI STREAMER
+async function getStreamerSession(request, env) {
+  const token = getBearerToken(request);
+
+  if (!token) return null;
+
+  const tokenHash = await sha256(token);
+
+  const session = await env.DB.prepare(`
+    SELECT
+      s.id,
+      s.username,
+      s.status,
+      ss.id AS session_id,
+      ss.expires_at
+    FROM streamer_sessions ss
+    JOIN streamers s
+      ON s.id = ss.streamer_id
+    WHERE ss.token_hash = ?
+    LIMIT 1
+  `).bind(tokenHash).first();
+
+  if (!session) return null;
+
+  if (
+    session.status !== "active" ||
+    !session.expires_at ||
+    session.expires_at <= new Date().toISOString()
+  ) {
+    await env.DB.prepare(`
+      DELETE FROM streamer_sessions
+      WHERE token_hash = ?
+    `).bind(tokenHash).run();
+
+    return null;
+  }
+
+  return {
+    id: session.id,
+    username: session.username
+  };
+}
+
 
 // =========================
 // LEPASKAN STOK
