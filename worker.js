@@ -215,6 +215,7 @@ async function api(path, options){
 }
 
 async function loginAdmin(){
+alert("FUNGSI LOGIN BERJALAN");
   adminToken = document.getElementById("token").value.trim();
   document.getElementById("msg").textContent = "Memeriksa token...";
 
