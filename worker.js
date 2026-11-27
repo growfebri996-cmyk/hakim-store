@@ -91,49 +91,349 @@ async function loginStreamer(){
     msg.textContent = "Isi username dan password";
     return;
   }
+const STREAMER_HTML = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HAKIM STORE - STREAMER</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b12;color:#eee;font-family:Arial,sans-serif}
+main{max-width:900px;margin:30px auto;padding:16px}
+.card{background:#151522;border:1px solid #29293b;border-radius:14px;padding:20px;margin-bottom:16px}
+h2,h3{margin-top:0}
+p{color:#aaa}
+input{width:100%;padding:13px;margin:8px 0;background:#0b0b12;color:white;border:1px solid #35354a;border-radius:8px}
+button{padding:11px 15px;border:0;border-radius:8px;background:#7655d9;color:white;font-weight:bold;cursor:pointer;margin:4px}
+button.secondary{background:#35354a}
+button.danger{background:#a83246}
+button:disabled{opacity:.5}
+.hidden{display:none}
+.item{background:#0d0d17;border:1px solid #303044;border-radius:10px;padding:14px;margin-top:10px}
+.info{font-size:13px;color:#aaa;line-height:1.8}
+.value{color:#fff;word-break:break-all}
+#msg,#loginMsg{font-size:13px;margin-top:12px;color:#d4c6ff}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;background:#0d0d17;padding:15px;border-radius:10px}
+.stat strong{display:block;font-size:24px;margin-top:7px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main>
+
+<div id="loginPanel" class="card">
+<h2 style="text-align:center">HAKIM STORE</h2>
+<p style="text-align:center">STREAMER PANEL</p>
+<h3>Login Streamer</h3>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button style="width:100%" onclick="loginStreamer()">LOGIN STREAMER</button>
+<div id="loginMsg"></div>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="card">
+<div class="top">
+<div>
+<h2>HAKIM STORE</h2>
+<p id="welcome">Dashboard Streamer</p>
+</div>
+<button class="danger" onclick="logoutStreamer()">LOGOUT</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Ringkasan Stok</h3>
+<div class="stats">
+<div class="stat">
+Stok Tersedia
+<strong id="stockCount">0</strong>
+</div>
+<div class="stat">
+Akun Diklaim
+<strong id="claimCount">0</strong>
+</div>
+</div>
+<button onclick="loadStock()">REFRESH STOK</button>
+<div id="stockList"></div>
+</div>
+
+<div class="card">
+<h3>Akun Hasil Klaim</h3>
+<div id="claimedList" class="info">Belum ada akun yang diklaim.</div>
+</div>
+
+<div class="card">
+<h3>Riwayat Klaim</h3>
+<div id="historyList" class="info">Memuat riwayat...</div>
+</div>
+
+<div id="msg"></div>
+</div>
+
+</main>
+
+<script>
+var streamerToken = localStorage.getItem("streamerToken") || "";
+var streamerData = {};
+
+function apiStreamer(path, options){
+  options = options || {};
+  options.headers = Object.assign({}, options.headers || {}, {
+    "Authorization": "Bearer " + streamerToken
+  });
+
+  return fetch(path, options).then(async function(response){
+    var data = await response.json();
+    if(!response.ok || !data.success){
+      throw new Error(data.message || "Terjadi kesalahan");
+    }
+    return data;
+  });
+}
+
+function showDashboard(){
+  document.getElementById("loginPanel").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+}
+
+function showLogin(){
+  document.getElementById("loginPanel").classList.remove("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+}
+
+async function loginStreamer(){
+  var username = document.getElementById("username").value.trim();
+  var password = document.getElementById("password").value;
+  var msg = document.getElementById("loginMsg");
+
+  if(!username || !password){
+    msg.textContent = "Isi username dan password";
+    return;
+  }
 
   msg.textContent = "Memproses login...";
 
   try{
-    const response = await fetch(
-      "/api/streamer/login",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          username,
-          password
-        })
-      }
-    );
+    var response = await fetch("/api/streamer/login", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:username,password:password})
+    });
 
-    const data = await response.json();
+    var data = await response.json();
 
     if(!response.ok || !data.success){
-      throw new Error(
-        data.message || "Login gagal"
-      );
+      throw new Error(data.message || "Login gagal");
     }
 
-    localStorage.setItem(
-      "streamerToken",
-      data.token
-    );
+    streamerToken = data.token;
+    localStorage.setItem("streamerToken", streamerToken);
+    localStorage.setItem("streamerData", JSON.stringify(data.streamer));
 
-    localStorage.setItem(
-      "streamerData",
-      JSON.stringify(data.streamer)
-    );
-
-    msg.textContent = "Login berhasil!";
-
-    // Dashboard akan kita pasang berikutnya.
+    await startDashboard();
 
   }catch(error){
     msg.textContent = error.message;
   }
+}
+
+async function startDashboard(){
+  try{
+    var data = await apiStreamer("/api/streamer/me");
+    streamerData = data.streamer;
+
+    document.getElementById("welcome").textContent =
+      "Login sebagai: " + streamerData.username;
+
+    showDashboard();
+
+    await loadStock();
+    await loadClaims();
+
+  }catch(error){
+    logoutStreamer();
+    document.getElementById("loginMsg").textContent = error.message;
+  }
+}
+
+async function loadStock(){
+  var list = document.getElementById("stockList");
+  list.innerHTML = "Memuat stok...";
+
+  try{
+    var data = await apiStreamer("/api/streamer/stock");
+    var stock = data.stock || [];
+
+    document.getElementById("stockCount").textContent = stock.length;
+
+    if(stock.length === 0){
+      list.innerHTML = "<p>Stok sedang kosong.</p>";
+      return;
+    }
+
+    list.innerHTML = "";
+
+    stock.forEach(function(item){
+      var div = document.createElement("div");
+      div.className = "item";
+
+      var product = document.createElement("div");
+      product.className = "info";
+      product.textContent = "Produk: " + item.product_id;
+
+      var id = document.createElement("div");
+      id.className = "info";
+      id.textContent = "ID Stok: " + item.id;
+
+      var button = document.createElement("button");
+      button.textContent = "KLAIM AKUN";
+      button.onclick = function(){
+        claimAccount(item.id);
+      };
+
+      div.appendChild(product);
+      div.appendChild(id);
+      div.appendChild(button);
+      list.appendChild(div);
+    });
+
+  }catch(error){
+    list.textContent = error.message;
+  }
+}
+
+async function claimAccount(id){
+  if(!confirm("Klaim akun ini? Stok akan diambil dari persediaan bersama.")){
+    return;
+  }
+
+  document.getElementById("msg").textContent = "Memproses klaim...";
+
+  try{
+    var data = await apiStreamer("/api/streamer/claim/" + id, {
+      method:"POST"
+    });
+
+    document.getElementById("msg").textContent = "Akun berhasil diklaim.";
+
+    await loadStock();
+    await loadClaims();
+
+    alert(
+      "KLAIM BERHASIL\\n\\nEmail: " +
+      data.account.account_email +
+      "\\nPassword: " +
+      data.account.password
+    );
+
+  }catch(error){
+    document.getElementById("msg").textContent = error.message;
+    await loadStock();
+  }
+}
+
+function copyText(value){
+  navigator.clipboard.writeText(value).then(function(){
+    alert("Berhasil disalin");
+  }).catch(function(){
+    prompt("Salin teks berikut:", value);
+  });
+}
+
+async function loadClaims(){
+  var list = document.getElementById("claimedList");
+  var history = document.getElementById("historyList");
+
+  list.textContent = "Memuat akun...";
+  history.textContent = "Memuat riwayat...";
+
+  try{
+    var data = await apiStreamer("/api/streamer/claims");
+    var claims = data.claims || [];
+    var active = claims.filter(function(item){
+      return item.status === "claimed";
+    });
+
+    document.getElementById("claimCount").textContent = active.length;
+
+    list.innerHTML = "";
+    history.innerHTML = "";
+
+    if(active.length === 0){
+      list.textContent = "Belum ada akun aktif yang diklaim.";
+    }
+
+    active.forEach(function(item){
+      var div = document.createElement("div");
+      div.className = "item";
+
+      var title = document.createElement("strong");
+      title.textContent = "Akun #" + item.id;
+
+      var email = document.createElement("div");
+      email.className = "info";
+      email.textContent = "Email: " + (item.account_email || "-");
+
+      var password = document.createElement("div");
+      password.className = "info";
+      password.textContent = "Password: " + (item.password || "-");
+
+      var copyEmail = document.createElement("button");
+      copyEmail.textContent = "SALIN EMAIL";
+      copyEmail.onclick = function(){
+        copyText(item.account_email || "");
+      };
+
+      var copyPassword = document.createElement("button");
+      copyPassword.textContent = "SALIN PASSWORD";
+      copyPassword.onclick = function(){
+        copyText(item.password || "");
+      };
+
+      div.appendChild(title);
+      div.appendChild(email);
+      div.appendChild(password);
+      div.appendChild(copyEmail);
+      div.appendChild(copyPassword);
+      list.appendChild(div);
+    });
+
+    if(claims.length === 0){
+      history.textContent = "Belum ada riwayat klaim.";
+    }else{
+      claims.forEach(function(item){
+        var div = document.createElement("div");
+        div.className = "item";
+        div.textContent =
+          "ID Klaim: " + item.id +
+          " | Produk: " + item.product_id +
+          " | Status: " + item.status;
+        history.appendChild(div);
+      });
+    }
+
+  }catch(error){
+    list.textContent = error.message;
+    history.textContent = error.message;
+  }
+}
+
+function logoutStreamer(){
+  localStorage.removeItem("streamerToken");
+  localStorage.removeItem("streamerData");
+  streamerToken = "";
+  streamerData = {};
+  showLogin();
+}
+
+if(streamerToken){
+  startDashboard();
+}else{
+  showLogin();
 }
 </script>
 </body>
