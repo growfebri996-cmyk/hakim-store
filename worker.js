@@ -1151,9 +1151,9 @@ if (
       inventory_id: item.inventory_id,
       product_id: item.product_id,
       account_email: item.account_email,
-      status: item.claim_status
+      status: item.claim_status,
       claimed_at: item.claimed_at,
-      returned_at: item.returned_at
+      returned_at: item.returned_at,
     };
 
     // Password hanya ditampilkan untuk klaim aktif
