@@ -1,3 +1,144 @@
+const STREAMER_HTML = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HAKIM STORE - STREAMER</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#0b0b12;
+  color:#eee;
+  font-family:Arial,sans-serif;
+}
+main{
+  max-width:440px;
+  margin:60px auto;
+  padding:20px;
+}
+.card{
+  background:#151522;
+  border:1px solid #29293b;
+  border-radius:14px;
+  padding:22px;
+}
+h2{text-align:center}
+p{
+  color:#aaa;
+  text-align:center;
+  font-size:13px;
+}
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  background:#0b0b12;
+  color:white;
+  border:1px solid #35354a;
+  border-radius:8px;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border:0;
+  border-radius:8px;
+  background:#7655d9;
+  color:white;
+  font-weight:bold;
+}
+#msg{
+  text-align:center;
+  margin-top:15px;
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+<h2>HAKIM STORE</h2>
+<p>STREAMER PANEL</p>
+
+<h3>Login Streamer</h3>
+
+<input id="username" placeholder="Username">
+
+<input id="password" type="password"
+placeholder="Password">
+
+<button onclick="loginStreamer()">
+LOGIN STREAMER
+</button>
+
+<div id="msg"></div>
+</div>
+</main>
+
+<script>
+async function loginStreamer(){
+  const username =
+    document.getElementById("username").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const msg = document.getElementById("msg");
+
+  if(!username || !password){
+    msg.textContent = "Isi username dan password";
+    return;
+  }
+
+  msg.textContent = "Memproses login...";
+
+  try{
+    const response = await fetch(
+      "/api/streamer/login",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          username,
+          password
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      throw new Error(
+        data.message || "Login gagal"
+      );
+    }
+
+    localStorage.setItem(
+      "streamerToken",
+      data.token
+    );
+
+    localStorage.setItem(
+      "streamerData",
+      JSON.stringify(data.streamer)
+    );
+
+    msg.textContent = "Login berhasil!";
+
+    // Dashboard akan kita pasang berikutnya.
+
+  }catch(error){
+    msg.textContent = error.message;
+  }
+}
+</script>
+</body>
+</html>
+`;
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -581,6 +722,18 @@ export default {
 
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: cors });
+    }
+
+    if (
+  url.pathname === "/streamer" ||
+  url.pathname === "/streamer.html"
+) {
+  return new Response(STREAMER_HTML, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store"
+    }
+  });
     }
 
     if (
