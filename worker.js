@@ -923,7 +923,7 @@ window.loginAdmin = loginAdmin;
 </html>`;
 
 const PRODUCTS = {
-  safeban: { name: "Akun SAFEBAN", price: 1000 },
+  safeban: { name: "Akun SAFEBAN", price: 30000 },
   paket1: { name: "Paket 1 - Starter", price: 70000 },
   paket2: { name: "Paket 2 - Pro", price: 150000 },
   paket3: { name: "Paket 3 - Elite", price: 300000 }
