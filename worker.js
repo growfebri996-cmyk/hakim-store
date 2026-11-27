@@ -418,20 +418,15 @@ async function loadStreamers(){
 
     document.getElementById("streamers").innerHTML =
       (d.streamers || []).map(function(s){
-        const nextStatus =
-          s.status === "active" ? "suspended" : "active";
-
-        const action =
-          s.status === "active" ? "SUSPEND" : "AKTIFKAN";
+        const nextStatus = s.status === "active" ? "suspended" : "active";
+        const action = s.status === "active" ? "SUSPEND" : "AKTIFKAN";
 
         return "<tr>" +
           "<td>" + esc(s.id) + "</td>" +
           "<td>" + esc(s.username) + "</td>" +
           "<td>" + esc(s.status) + "</td>" +
           "<td>" + esc(s.active_claims) + "</td>" +
-          '<td><button onclick="changeStreamerStatus(' +
-Number(s.id) + ',\'' + nextStatus +
-'\')">' + action + '</button></td>' +
+          "<td><button onclick='changeStreamerStatus(" + Number(s.id) + ",\"" + nextStatus + "\")'>" + action + "</button></td>" +
           "</tr>";
       }).join("") ||
       "<tr><td colspan='5'>Belum ada streamer</td></tr>";
@@ -441,7 +436,6 @@ Number(s.id) + ',\'' + nextStatus +
       "<tr><td colspan='5'>" + esc(e.message) + "</td></tr>";
   }
 }
-
 
 // AKTIFKAN / SUSPEND STREAMER
 async function changeStreamerStatus(id,status){
@@ -487,11 +481,11 @@ async function loadStreamerClaims(){
         let action = "-";
 
         if(c.claim_status === "claimed"){
-          action =
-  "<button onclick='returnStreamerClaim(" +
-  Number(c.claim_id) +
-  ")'>KEMBALIKAN</button>";
-        }
+  action =
+    "<button onclick='returnStreamerClaim(" +
+    Number(c.claim_id) +
+    ")'>KEMBALIKAN</button>";
+}
 
         return "<tr>" +
           "<td>" + esc(c.claim_id) + "</td>" +
