@@ -240,8 +240,6 @@ products = productData.products || {};
 
     renderStats(d);
 await refreshAll();
-await loadStreamers();
-await loadStreamerClaims();
   }catch(e){
     adminToken = "";
     document.getElementById("msg").textContent = e.message;
