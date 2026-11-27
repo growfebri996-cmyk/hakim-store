@@ -866,21 +866,7 @@ async function loadStreamerClaims(){
           "<td>" + esc(c.inventory_id) + "</td>" +
           "<td>" + esc(c.account_email) + "</td>" +
           "<td>" + esc(c.claim_status) + "</td>" +
-          "<td>" + esc(
-  c.claimed_at
-    ? new Date(c.claimed_at.replace(" ", "T") + "Z")
-        .toLocaleString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false
-        })
-    : "-"
-) + "</td>" +
+          "<td>" + esc(c.claimed_at) + "</td>" +
           "<td>" + action + "</td>" +
           "</tr>";
       }).join("") ||
@@ -1611,7 +1597,7 @@ if (
       s.username,
       c.inventory_id,
       c.status AS claim_status,
-      c.claimed_at,
+      datetime(c.claimed_at, '+7 hours') AS claimed_at,
       c.returned_at,
       c.returned_by,
       i.product_id,
