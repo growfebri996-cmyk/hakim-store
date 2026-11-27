@@ -216,17 +216,28 @@ async function api(path, options){
 
 async function loginAdmin(){
   adminToken = document.getElementById("token").value.trim();
-  document.getElementById("msg").textContent = "Memeriksa token...";
+
+if(!adminToken){
+  document.getElementById("msg").textContent = "Masukkan token admin!";
+  return;
+}
+
+document.getElementById("msg").textContent = "Memeriksa token...";
 
   try{
-    var d = await api("/api/admin/dashboard");
-
-    document.getElementById("login").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
+    await api("/api/admin/dashboard");
 
     var p = await fetch("/api/products");
+
+if(!p.ok){
+  throw new Error("Gagal memuat daftar produk");
+}
+
 var productData = await p.json();
 products = productData.products || {};
+
+document.getElementById("login").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
 
     var select = document.getElementById("product");
     select.innerHTML = "";
@@ -242,7 +253,9 @@ products = productData.products || {};
 await refreshAll();
   }catch(e){
     adminToken = "";
-    document.getElementById("msg").textContent = e.message;
+document.getElementById("login").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
+document.getElementById("msg").textContent = e.message;
   }
 }
 
