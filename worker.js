@@ -168,8 +168,6 @@ async function startDashboard(){
 }
 
 async function loadStock(){
-
-async function loadStock(){
   var list = document.getElementById("stockList");
   list.innerHTML = "Memuat stok...";
 
