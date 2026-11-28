@@ -396,7 +396,12 @@ small{color:#aaa}
 <h3>Tambah Stok Akun</h3>
 <div class="card">
 <select id="product"></select>
-<input id="email" placeholder="Email / username akun">
+<textarea
+  id="email"
+  placeholder="Masukkan email, satu email setiap baris"
+  rows="7"
+  style="width:100%;padding:12px;resize:vertical"
+></textarea>
 <input id="password" type="password" placeholder="Password akun">
 <button onclick="addStock()">TAMBAH STOK</button>
 <div id="stockmsg"></div>
@@ -648,17 +653,30 @@ await loadStreamerClaims();
   }
 }
 
+
 async function addStock(){
   var product_id = document.getElementById("product").value;
-  var account_email = document.getElementById("email").value.trim();
+  var emailText = document.getElementById("email").value.trim();
   var password = document.getElementById("password").value;
 
-  if(!account_email || !password){
-    alert("Email/username dan password wajib diisi");
+  var account_emails = emailText
+    .split(/\r?\n/)
+    .map(function(email){
+      return email.trim();
+    })
+    .filter(function(email){
+      return email.length > 0;
+    });
+
+  if(account_emails.length === 0 || !password){
+    alert("Email dan password wajib diisi");
     return;
   }
 
-  if(!confirm("Tambahkan akun ini ke stok?")) return;
+  if(!confirm(
+    "Tambahkan " + account_emails.length +
+    " akun ke stok dengan satu password yang sama?"
+  )) return;
 
   try{
     var d = await api("/api/admin/stock",{
@@ -666,20 +684,24 @@ async function addStock(){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         product_id:product_id,
-        account_email:account_email,
+        account_emails:account_emails,
         password:password
       })
     });
 
-    document.getElementById("stockmsg").textContent = d.message || "Stok berhasil ditambahkan";
+    document.getElementById("stockmsg").textContent =
+      d.message || "Stok berhasil ditambahkan";
+
     document.getElementById("email").value = "";
     document.getElementById("password").value = "";
 
     await refreshAll();
+
   }catch(e){
     document.getElementById("stockmsg").textContent = e.message;
   }
 }
+
 
 
 async function loadStock(){
@@ -1979,93 +2001,135 @@ if (url.pathname === "/api/admin/orders" && request.method === "GET") {
         });
       }
 
-      // =========================
-      // ADMIN: TAMBAH STOK
-      // =========================
-      if (
-        url.pathname === "/api/admin/stock" &&
-        request.method === "POST"
-      ) {
-        if (!isAdmin(request, env)) {
-          return respond({
-            success: false,
-            message: "Akses admin ditolak"
-          }, 401);
-        }
+      
+// =========================
+// ADMIN: TAMBAH STOK (BISA BANYAK)
+// =========================
+if (
+  url.pathname === "/api/admin/stock" &&
+  request.method === "POST"
+) {
+  if (!isAdmin(request, env)) {
+    return respond({
+      success: false,
+      message: "Akses admin ditolak"
+    }, 401);
+  }
 
-        if (!env.ACCOUNT_ENCRYPTION_KEY) {
-          return respond({
-            success: false,
-            message: "ACCOUNT_ENCRYPTION_KEY belum tersedia"
-          }, 500);
-        }
+  if (!env.ACCOUNT_ENCRYPTION_KEY) {
+    return respond({
+      success: false,
+      message: "ACCOUNT_ENCRYPTION_KEY belum tersedia"
+    }, 500);
+  }
 
-        const body = await request.json();
+  const body = await request.json();
 
-        const productId = body.product_id;
-        const email = body.account_email;
-        const password = body.password;
+  const productId = body.product_id;
+  const password = body.password;
 
-        if (
-          !PRODUCTS[productId] ||
-          typeof email !== "string" ||
-          !email.trim() ||
-          typeof password !== "string" ||
-          !password
-        ) {
-          return respond({
-            success: false,
-            message: "Data stok tidak lengkap atau tidak valid"
-          }, 400);
-        }
+  let emails = [];
 
-        const keyBytes = hexToBytes(
-          env.ACCOUNT_ENCRYPTION_KEY
-        );
+  if (Array.isArray(body.account_emails)) {
+    emails = body.account_emails;
+  } else if (typeof body.account_emails === "string") {
+    emails = body.account_emails.split(/\r?\n/);
+  } else if (typeof body.account_email === "string") {
+    // Tetap mendukung fitur tambah satu akun lama
+    emails = [body.account_email];
+  }
 
-        if (keyBytes.length !== 32) {
-          return respond({
-            success: false,
-            message: "ACCOUNT_ENCRYPTION_KEY harus 64 karakter hex"
-          }, 500);
-        }
+  emails = emails
+    .filter(email => typeof email === "string")
+    .map(email => email.trim())
+    .filter(email => email.length > 0);
 
-        const iv = crypto.getRandomValues(
-          new Uint8Array(12)
-        );
+  if (
+    !PRODUCTS[productId] ||
+    emails.length === 0 ||
+    typeof password !== "string" ||
+    password.length === 0
+  ) {
+    return respond({
+      success: false,
+      message: "Produk, email, atau password tidak valid"
+    }, 400);
+  }
 
-        const key = await crypto.subtle.importKey(
-          "raw",
-          keyBytes,
-          "AES-GCM",
-          false,
-          ["encrypt"]
-        );
+  if (emails.length > 100) {
+    return respond({
+      success: false,
+      message: "Maksimal 100 akun dalam satu kali penambahan"
+    }, 400);
+  }
 
-        const encrypted = await crypto.subtle.encrypt(
-          { name: "AES-GCM", iv },
-          key,
-          new TextEncoder().encode(password)
-        );
+  const uniqueEmails = new Set(
+    emails.map(email => email.toLowerCase())
+  );
 
-        await env.DB.prepare(
-          `INSERT INTO inventory
-           (product_id, account_email, password_cipher,
-            password_iv, status)
-           VALUES (?, ?, ?, ?, 'available')`
-        ).bind(
-          productId,
-          email.trim(),
-          bytesToHex(new Uint8Array(encrypted)),
-          bytesToHex(iv)
-        ).run();
+  if (uniqueEmails.size !== emails.length) {
+    return respond({
+      success: false,
+      message: "Ada email yang duplikat dalam daftar"
+    }, 400);
+  }
 
-        return respond({
-          success: true,
-          message: "Stok berhasil ditambahkan"
-        });
-      }
+  const keyBytes = hexToBytes(
+    env.ACCOUNT_ENCRYPTION_KEY
+  );
 
+  if (keyBytes.length !== 32) {
+    return respond({
+      success: false,
+      message: "ACCOUNT_ENCRYPTION_KEY harus 64 karakter hex"
+    }, 500);
+  }
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    "AES-GCM",
+    false,
+    ["encrypt"]
+  );
+
+  const statements = [];
+
+  for (const email of emails) {
+    const iv = crypto.getRandomValues(
+      new Uint8Array(12)
+    );
+
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      new TextEncoder().encode(password)
+    );
+
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO inventory
+         (product_id, account_email, password_cipher,
+          password_iv, status)
+         VALUES (?, ?, ?, ?, 'available')`
+      ).bind(
+        productId,
+        email,
+        bytesToHex(new Uint8Array(encrypted)),
+        bytesToHex(iv)
+      )
+    );
+  }
+
+  await env.DB.batch(statements);
+
+  return respond({
+    success: true,
+    message: emails.length + " akun berhasil ditambahkan",
+    total_added: emails.length
+  });
+}
+      
       // =========================
       // BUAT PESANAN DAN PEMBAYARAN
       // =========================
