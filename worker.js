@@ -168,6 +168,8 @@ async function startDashboard(){
 }
 
 async function loadStock(){
+
+async function loadStock(){
   var list = document.getElementById("stockList");
   list.innerHTML = "Memuat stok...";
 
@@ -182,36 +184,107 @@ async function loadStock(){
       return;
     }
 
+    var products = [
+      {id:"safeban", name:"SAFEBAN"},
+      {id:"paket1", name:"PAKET 1"},
+      {id:"paket2", name:"PAKET 2"},
+      {id:"paket3", name:"PAKET 3"}
+    ];
+
     list.innerHTML = "";
 
-    stock.forEach(function(item){
-      var div = document.createElement("div");
-      div.className = "item";
+    var grid = document.createElement("div");
+    grid.style.display = "grid";
+    grid.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
+    grid.style.gap = "12px";
 
-      var product = document.createElement("div");
-      product.className = "info";
-      product.textContent = "Produk: " + item.product_id;
+    products.forEach(function(product){
 
-      var id = document.createElement("div");
-      id.className = "info";
-      id.textContent = "ID Stok: " + item.id;
+      var accounts = stock.filter(function(item){
+        return item.product_id === product.id;
+      });
 
-      var button = document.createElement("button");
-      button.textContent = "KLAIM AKUN";
-      button.onclick = function(){
-        claimAccount(item.id);
+      var card = document.createElement("div");
+      card.style.background = "#171722";
+      card.style.border = "1px solid #333344";
+      card.style.borderRadius = "12px";
+      card.style.padding = "14px";
+      card.style.minWidth = "0";
+
+      var title = document.createElement("div");
+      title.textContent = product.name;
+      title.style.fontWeight = "bold";
+      title.style.fontSize = "14px";
+      title.style.marginBottom = "8px";
+
+      var count = document.createElement("div");
+      count.textContent = accounts.length + " akun tersedia";
+      count.style.fontSize = "20px";
+      count.style.fontWeight = "bold";
+      count.style.marginBottom = "12px";
+
+      var toggle = document.createElement("button");
+      toggle.textContent = "LIHAT AKUN";
+      toggle.style.width = "100%";
+      toggle.style.fontSize = "12px";
+      toggle.disabled = accounts.length === 0;
+
+      if(accounts.length === 0){
+        toggle.textContent = "STOK KOSONG";
+        toggle.style.opacity = "0.5";
+      }
+
+      var accountList = document.createElement("div");
+      accountList.style.display = "none";
+      accountList.style.marginTop = "12px";
+
+      accounts.forEach(function(item){
+
+        var row = document.createElement("div");
+        row.style.background = "#242433";
+        row.style.padding = "10px";
+        row.style.borderRadius = "8px";
+        row.style.marginBottom = "8px";
+
+        var id = document.createElement("div");
+        id.textContent = "ID Stok: " + item.id;
+        id.style.fontSize = "12px";
+        id.style.marginBottom = "8px";
+
+        var claimButton = document.createElement("button");
+        claimButton.textContent = "KLAIM AKUN";
+        claimButton.style.width = "100%";
+        claimButton.onclick = function(){
+          claimAccount(item.id);
+        };
+
+        row.appendChild(id);
+        row.appendChild(claimButton);
+        accountList.appendChild(row);
+      });
+
+      toggle.onclick = function(){
+        var isOpen = accountList.style.display !== "none";
+
+        accountList.style.display = isOpen ? "none" : "block";
+        toggle.textContent = isOpen ? "LIHAT AKUN" : "TUTUP AKUN";
       };
 
-      div.appendChild(product);
-      div.appendChild(id);
-      div.appendChild(button);
-      list.appendChild(div);
+      card.appendChild(title);
+      card.appendChild(count);
+      card.appendChild(toggle);
+      card.appendChild(accountList);
+
+      grid.appendChild(card);
     });
+
+    list.appendChild(grid);
 
   }catch(error){
     list.textContent = error.message;
   }
 }
+
 
 async function claimAccount(id){
   if(!confirm("Klaim akun ini? Stok akan diambil dari persediaan bersama.")){
