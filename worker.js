@@ -654,13 +654,14 @@ await loadStreamerClaims();
 }
 
 
+
 async function addStock(){
   var product_id = document.getElementById("product").value;
   var emailText = document.getElementById("email").value.trim();
   var password = document.getElementById("password").value;
 
   var account_emails = emailText
-    .split(/\r?\n/)
+    .split(String.fromCharCode(10))
     .map(function(email){
       return email.trim();
     })
@@ -675,7 +676,7 @@ async function addStock(){
 
   if(!confirm(
     "Tambahkan " + account_emails.length +
-    " akun ke stok dengan satu password yang sama?"
+    " akun dengan satu password yang sama?"
   )) return;
 
   try{
@@ -701,6 +702,7 @@ async function addStock(){
     document.getElementById("stockmsg").textContent = e.message;
   }
 }
+
 
 
 
